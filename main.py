@@ -538,30 +538,6 @@ async def trigger_security_scan(scan_request: dict):
             }
             
             return scan_results
-                return {
-                    "scan_id": f"fallback_scan_{int(time.time())}",
-                    "email": email,
-                    "timestamp": datetime.now().isoformat(),
-                    "scan_type": scan_type,
-                    "status": "completed",
-                    "threats": [],
-                    "system_info": {
-                        "os": "⚠️ NO AGENT DETECTED", 
-                        "status": "Install agent to scan your device",
-                        "cpu_percent": 0,
-                        "memory_percent": 0,
-                        "process_count": 0,
-                        "disk_usage": 0,
-                        "source": "No real device data available"
-                    },
-                    "network_connections": [],
-                    "risky_ports": [],
-                    "recommendations": [
-                        "❌ No CyberNova agent detected on your device",
-                        "📥 Download and install the agent to scan your actual device", 
-                        "🔄 This scan shows no data because no agent is running"
-                    ]
-                }
         
     except Exception as e:
         logging.error(f"Scan trigger failed: {e}")
@@ -612,7 +588,6 @@ async def get_system_status():
     except Exception as e:
         logging.error(f"System status check failed: {e}")
         # Return a basic status instead of failing
-        global latest_scan_data
         agent_active = latest_scan_data is not None and latest_scan_data.get("threats") is not None
         
         return {

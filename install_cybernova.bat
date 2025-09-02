@@ -46,7 +46,7 @@ cd /d "%INSTALL_DIR%"
 
 :: Download agent files
 echo [INFO] Downloading agent script...
-powershell -Command "try { Invoke-WebRequest -Uri 'http://localhost:8080/installer-download?type=python' -OutFile 'cybernova_agent.py' } catch { Write-Host 'Failed to download agent. Please check your internet connection.' }"
+powershell -Command "try { Invoke-WebRequest -Uri 'https://cybernova-launch-api-gateway.onrender.com/agent-download' -OutFile 'cybernova_agent.py' } catch { Write-Host 'Failed to download agent. Please check your internet connection.' }"
 
 if not exist "cybernova_agent.py" (
     echo [ERROR] Failed to download agent. Please check your internet connection.
@@ -116,7 +116,7 @@ echo ========================================
 echo.
 echo ✅ CyberNova agent is now installed and running
 echo 🛡️ Real-time security monitoring is active  
-echo 📊 Check your dashboard at: http://localhost:8080/dashboard
+echo 📊 Check your dashboard at: https://cybernova-frontend.netlify.app/dashboard
 echo 🔄 The agent will automatically start with Windows
 echo.
 echo 🚀 Ready to scan! The agent is monitoring your device.

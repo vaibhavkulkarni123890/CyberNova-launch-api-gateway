@@ -15,7 +15,7 @@ import platform
 from typing import Optional, Union
 
 # Configuration
-AGENT_URL = "http://localhost:8080/agent-download"  # Updated for beta testing
+AGENT_URL = "https://cybernova-launch-api-gateway.onrender.com/agent-download"  # Production server
 INSTALL_DIR_NAME = "CyberNova"
 
 def download_agent(install_dir: Path) -> bool:

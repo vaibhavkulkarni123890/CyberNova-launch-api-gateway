@@ -493,7 +493,7 @@ async def trigger_security_scan(scan_request: dict):
         # Check if we have real scan data from agent
         global latest_scan_data
         
-        if latest_scan_data and latest_scan_data.get("threats"):
+        if latest_scan_data and latest_scan_data.get("threats") is not None:
             # Return real data from agent
             logging.info(f"Returning real scan data for {email}: {len(latest_scan_data.get('threats', []))} threats")
             
@@ -513,38 +513,55 @@ async def trigger_security_scan(scan_request: dict):
             return scan_results
         
         else:
-            # No real data available - get current system info
-            import platform
-            import psutil
-            
-            # Get real system information from the server
-            system_info = {
-                "os": f"{platform.system()} {platform.release()}",
-                "cpu_percent": psutil.cpu_percent(interval=1),
-                "memory_percent": psutil.virtual_memory().percent,
-                "process_count": len(psutil.pids()),
-                "disk_usage": psutil.disk_usage('/').percent if platform.system() != 'Windows' else psutil.disk_usage('C:').percent
-            }
+            # No real user data available - return empty scan results (NO SERVER DATA)
+            logging.info(f"No agent data available for {email}, returning empty scan results")
             
             scan_results = {
-                "scan_id": f"server_scan_{int(time.time())}",
+                "scan_id": f"no_agent_scan_{int(time.time())}",
                 "email": email,
                 "timestamp": datetime.now().isoformat(),
                 "scan_type": scan_type,
-                "status": "completed",
-                "threats": [],  # No threats without agent
-                "system_info": system_info,
+                "status": "no_agent",
+                "threats": [],
+                "system_info": {
+                    "message": "No agent installed on user device",
+                    "status": "Install CyberNova agent to see real device data",
+                    "data_source": "None - Agent required"
+                },
                 "network_connections": [],
                 "risky_ports": [],
                 "recommendations": [
-                    "Install CyberNova agent for real threat detection",
-                    "Agent will provide comprehensive security monitoring",
-                    "Real-time protection requires agent installation"
+                    "Install CyberNova agent to see real security data from YOUR device",
+                    "Agent will monitor your actual system processes and network activity",
+                    "No data available without agent installation on your device"
                 ]
             }
             
-            logging.info(f"No agent data available for {email}, returning server system info")
             return scan_results
+                return {
+                    "scan_id": f"fallback_scan_{int(time.time())}",
+                    "email": email,
+                    "timestamp": datetime.now().isoformat(),
+                    "scan_type": scan_type,
+                    "status": "completed",
+                    "threats": [],
+                    "system_info": {
+                        "os": "⚠️ NO AGENT DETECTED", 
+                        "status": "Install agent to scan your device",
+                        "cpu_percent": 0,
+                        "memory_percent": 0,
+                        "process_count": 0,
+                        "disk_usage": 0,
+                        "source": "No real device data available"
+                    },
+                    "network_connections": [],
+                    "risky_ports": [],
+                    "recommendations": [
+                        "❌ No CyberNova agent detected on your device",
+                        "📥 Download and install the agent to scan your actual device", 
+                        "🔄 This scan shows no data because no agent is running"
+                    ]
+                }
         
     except Exception as e:
         logging.error(f"Scan trigger failed: {e}")
@@ -555,30 +572,38 @@ async def get_system_status():
     """Get current system and agent status"""
     try:
         import platform
-        import psutil
         from datetime import datetime, timedelta
         
-        # Get system information
-        boot_time = datetime.fromtimestamp(psutil.boot_time())
-        uptime = datetime.now() - boot_time
+        # Check if we have real agent data
+        global latest_scan_data
+        agent_active = latest_scan_data is not None and latest_scan_data.get("threats") is not None
+        
+        # Only show user agent data, no server data
+        if agent_active:
+            # Use real user data from agent
+            system_info = latest_scan_data.get("system_info", {})
+            uptime = "Agent Active"
+        else:
+            # No user data available
+            uptime = "No Agent"
+            system_info = {
+                "message": "No agent installed on user device",
+                "status": "Install agent to see real device data"
+            }
         
         status_data = {
-            "status": "running",
-            "uptime": str(uptime).split('.')[0],  # Remove microseconds
-            "last_scan": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "system_info": {
-                "os": f"{platform.system()} {platform.release()}",
-                "cpu_percent": psutil.cpu_percent(interval=1),
-                "memory_percent": psutil.virtual_memory().percent,
-                "disk_percent": psutil.disk_usage('/').percent if platform.system() != 'Windows' else psutil.disk_usage('C:').percent,
-                "network_connections": len(psutil.net_connections()),
-                "running_processes": len(psutil.pids())
-            },
+            "status": "running" if agent_active else "no_agent",
+            "agent_active": agent_active,
+            "uptime": str(uptime).split('.')[0] if uptime != "Unknown" else "Unknown",
+            "last_scan": latest_scan_data.get("timestamp") if latest_scan_data else "Never",
+            "system_info": system_info,
             "agent_info": {
                 "version": "1.0.0",
                 "last_update": datetime.now().strftime("%Y-%m-%d"),
                 "scan_interval": 30,
-                "auto_start": True
+                "auto_start": True,
+                "data_received": agent_active,
+                "last_data_time": latest_scan_data.get("timestamp") if latest_scan_data else None
             }
         }
         
@@ -586,7 +611,28 @@ async def get_system_status():
         
     except Exception as e:
         logging.error(f"System status check failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to get system status: {str(e)}")
+        # Return a basic status instead of failing
+        global latest_scan_data
+        agent_active = latest_scan_data is not None and latest_scan_data.get("threats") is not None
+        
+        return {
+            "status": "running" if agent_active else "no_agent",
+            "agent_active": agent_active,
+            "uptime": "No Agent",
+            "last_scan": latest_scan_data.get("timestamp") if latest_scan_data else "Never",
+            "system_info": {
+                "message": "No agent installed on user device",
+                "status": "Install agent to see real device data"
+            },
+            "agent_info": {
+                "version": "1.0.0",
+                "last_update": datetime.now().strftime("%Y-%m-%d"),
+                "scan_interval": 30,
+                "auto_start": True,
+                "data_received": agent_active,
+                "last_data_time": latest_scan_data.get("timestamp") if latest_scan_data else None
+            }
+        }
 
 @app.post("/api/agent/install")
 async def install_agent(install_request: dict):

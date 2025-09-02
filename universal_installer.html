@@ -563,9 +563,15 @@
                 resultsHtml += `</ul>`;
             }
             
+            // Check if this is real device data or server data
+            const isRealDeviceData = !systemInfo.source || !systemInfo.source.includes('Server');
+            const dataSourceMessage = isRealDeviceData ? 
+                "✅ This data is from your actual device" : 
+                "⚠️ WARNING: This is server data, NOT from your device";
+            
             resultsHtml += `
-                    <p style="margin-top: 15px; font-size: 12px; color: #ccc;">
-                        ✅ This data is from your actual device, not simulated
+                    <p style="margin-top: 15px; font-size: 12px; color: ${isRealDeviceData ? '#4caf50' : '#ff9800'};">
+                        ${dataSourceMessage}
                     </p>
                 </div>`;
             scanResults.innerHTML = resultsHtml;
@@ -611,16 +617,32 @@
             const systemStatus = document.getElementById('systemStatus');
             
             const status = statusData.status || 'unknown';
+            const agentActive = statusData.agent_active || false;
             const uptime = statusData.uptime || 'N/A';
             const lastScan = statusData.last_scan || 'Never';
+            
+            // Determine status based on actual agent activity and real data
+            let agentStatusText = '❌ Stopped';
+            let protectionText = '⚠️ Inactive';
+            
+            if (status === 'running' && agentActive) {
+                agentStatusText = '✅ Running';
+                protectionText = '🛡️ Active';
+            } else if (status === 'no_agent' || !agentActive) {
+                agentStatusText = '❌ Stopped';
+                protectionText = '⚠️ Inactive';
+            } else {
+                agentStatusText = '⚠️ Starting';
+                protectionText = '⚠️ Inactive';
+            }
             
             systemStatus.innerHTML = `
                 <div style="background: rgba(255,255,255,0.1); border-radius: 15px; padding: 15px; text-align: left;">
                     <h4>📊 System Status</h4>
-                    <p><strong>Agent Status:</strong> ${status === 'running' ? '✅ Running' : '❌ Stopped'}</p>
+                    <p><strong>Agent Status:</strong> ${agentStatusText}</p>
                     <p><strong>Uptime:</strong> ${uptime}</p>
                     <p><strong>Last Scan:</strong> ${lastScan}</p>
-                    <p><strong>Protection:</strong> ${status === 'running' ? '🛡️ Active' : '⚠️ Inactive'}</p>
+                    <p><strong>Protection:</strong> ${protectionText}</p>
                 </div>
             `;
         }
@@ -643,11 +665,14 @@
         // Open dashboard
         function openDashboard() {
             const userEmail = localStorage.getItem('cybernovaEmail');
+            // Use environment variable or fallback to production URL
+            const FRONTEND_URL = 'https://cybernova-frontend.netlify.app'; // Update this when you deploy frontend
+            
             // Redirect to React frontend dashboard
             if (userEmail) {
-                window.open(`http://localhost:5172/dashboard?email=${encodeURIComponent(userEmail)}`, '_blank');
+                window.open(`${FRONTEND_URL}/dashboard?email=${encodeURIComponent(userEmail)}`, '_blank');
             } else {
-                window.open('http://localhost:5172/dashboard', '_blank');
+                window.open(`${FRONTEND_URL}/dashboard`, '_blank');
             }
         }
         
@@ -754,22 +779,69 @@
             instructions.style.display = 'block';
         }
         
-        // Check if agent is already installed
-        function checkAgentInstalled() {
+        // Check if agent is actually running (not just localStorage)
+        async function checkAgentInstalled() {
             const agentInstalled = localStorage.getItem('cybernovaAgentInstalled');
             const userEmail = localStorage.getItem('cybernovaEmail');
             
-            if (agentInstalled === 'true') {
-                // Agent is already installed, show success state
-                document.getElementById('progress').style.display = 'block';
-                document.getElementById('progressBar').style.width = '100%';
-                document.getElementById('status').textContent = '✅ Agent already installed and running!';
-                document.getElementById('mainInstallBtn').disabled = true;
-                document.getElementById('mainInstallBtn').textContent = '✅ Agent Installed';
-                document.getElementById('scanSection').style.display = 'block';
-                document.getElementById('dashboardSection').style.display = 'block';
-                showSuccessMessage();
-                checkSystemStatus();
+            try {
+                // Check real system status to determine actual agent state
+                const systemResponse = await fetch('/api/system/status');
+                const dashboardResponse = await fetch('/api/dashboard/stats');
+                
+                let isAgentRunning = false;
+                let hasRecentData = false;
+                
+                if (systemResponse.ok) {
+                    const systemData = await systemResponse.json();
+                    isAgentRunning = systemData.status === 'running';
+                }
+                
+                if (dashboardResponse.ok) {
+                    const dashboardData = await dashboardResponse.json();
+                    hasRecentData = dashboardData.lastScanTime && dashboardData.lastScanTime !== 'Never';
+                }
+                
+                if (isAgentRunning && hasRecentData) {
+                    // Agent is actually running with recent data
+                    localStorage.setItem('cybernovaAgentInstalled', 'true');
+                    localStorage.setItem('cybernovaAgentInstallDate', new Date().toISOString());
+                    
+                    document.getElementById('progress').style.display = 'block';
+                    document.getElementById('progressBar').style.width = '100%';
+                    document.getElementById('status').textContent = '✅ Agent installed and actively running!';
+                    document.getElementById('mainInstallBtn').disabled = true;
+                    document.getElementById('mainInstallBtn').textContent = '✅ Agent Active';
+                    document.getElementById('scanSection').style.display = 'block';
+                    document.getElementById('dashboardSection').style.display = 'block';
+                    showSuccessMessage();
+                    checkSystemStatus();
+                } else if (agentInstalled === 'true' && !isAgentRunning) {
+                    // Agent was installed but is not running
+                    document.getElementById('progress').style.display = 'block';
+                    document.getElementById('progressBar').style.width = '70%';
+                    document.getElementById('status').textContent = '⚠️ Agent installed but not running. Please restart the agent.';
+                    document.getElementById('mainInstallBtn').disabled = false;
+                    document.getElementById('mainInstallBtn').textContent = '🔄 Restart Agent';
+                    document.getElementById('scanSection').style.display = 'block';
+                    document.getElementById('dashboardSection').style.display = 'block';
+                    checkSystemStatus();
+                } else {
+                    // No agent detected or not running
+                    localStorage.removeItem('cybernovaAgentInstalled');
+                    localStorage.removeItem('cybernovaAgentInstallDate');
+                    document.getElementById('status').textContent = '❌ No agent detected. Please install the agent.';
+                    document.getElementById('mainInstallBtn').disabled = false;
+                    document.getElementById('mainInstallBtn').textContent = '🚀 Install & Run Agent (1-Click)';
+                }
+                
+            } catch (error) {
+                // Network error or API unavailable
+                if (agentInstalled === 'true') {
+                    document.getElementById('status').textContent = '⚠️ Cannot verify agent status. Agent may be installed.';
+                } else {
+                    document.getElementById('status').textContent = '❌ No agent detected. Please install the agent.';
+                }
             }
         }
         

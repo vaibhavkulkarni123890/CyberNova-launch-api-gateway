@@ -19,7 +19,7 @@ import os
 from typing import Dict, List, Optional, Tuple, Any, Union
 
 # Configuration
-API_URL = os.environ.get("CYBERNOVA_API_URL", "http://localhost:8080")
+API_URL = os.environ.get("CYBERNOVA_API_URL", "https://cybernova-launch-api-gateway.onrender.com")
 SCAN_INTERVAL = 30  # seconds
 
 # Setup logging

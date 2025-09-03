@@ -151,75 +151,84 @@ async def beta_signup(signup_data: BetaSignup, background_tasks: BackgroundTasks
             email_subject = "🚀 Welcome to CyberNova AI Beta Testing!"
             email_body = f"""
             <html>
-            <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <h1 style="color: #1976d2; text-align: center;">🛡️ Welcome to CyberNova AI Beta!</h1>
-                    
-                    <p>Thank you for joining our exclusive beta testing program! You're now part of an elite group testing the future of cybersecurity.</p>
-                    
-                    <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
-                        <h2 style="color: #1976d2; margin: 0 0 15px 0;">🚀 Beta Testing Access</h2>
-                        <div style="background: #fff; padding: 15px; border-radius: 5px; margin: 10px 0; border: 2px solid #1976d2;">
-                            <h3 style="color: #1976d2; margin: 0 0 10px 0;">🔗 Universal Installer (Recommended)</h3>
-                            <p style="margin: 5px 0;"><strong>1-Click Installation for ALL Devices</strong></p>
-                            <a href="http://localhost:8080/universal-installer" 
-                               style="display: inline-block; background: #1976d2; color: white; padding: 12px 24px; 
-                                      text-decoration: none; border-radius: 5px; font-weight: bold; margin: 10px 0;">
-                                🚀 Install & Run Agent (1-Click)
-                            </a>
-                            <p style="margin: 5px 0; font-size: 14px; color: #666;">
-                                Auto-detects your device • Windows, Mac, Linux, Android, iOS
-                            </p>
-                        </div>
-                        <p style="margin: 15px 0 5px 0; color: #666; font-size: 14px;">Alternative Downloads:</p>
-                        <p style="margin: 5px 0;"><a href="http://localhost:8080/agent-download?email={signup_data.email}" style="color: #1976d2;">Direct Agent Download</a></p>
-                        <p style="margin: 5px 0;"><a href="http://localhost:8080/installer-download?email={signup_data.email}" style="color: #1976d2;">Python Installer</a></p>
-                    </div>
-                    
-                    <h3 style="color: #1976d2;">🔧 Getting Started (3 Simple Steps):</h3>
-                    <ol>
-                        <li><strong>Click Universal Installer:</strong> Use the 1-click installer above (works on ALL devices)</li>
-                        <li><strong>Install & Run:</strong> Agent installs and starts automatically</li>
-                        <li><strong>Start Scanning:</strong> Click "Start Security Scan" to see your device's security status</li>
-                    </ol>
-                    
-                    <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin: 15px 0;">
-                        <h4 style="color: #2e7d32; margin: 0 0 10px 0;">✨ What Happens After Installation:</h4>
-                        <p style="margin: 5px 0;">• Agent starts monitoring your device immediately</p>
-                        <p style="margin: 5px 0;">• Click "Start Security Scan" to see real-time results</p>
-                        <p style="margin: 5px 0;">• View live dashboard with your device's security data</p>
-                        <p style="margin: 5px 0;">• Agent auto-starts with your system</p>
-                    </div>
-                    
-                    <h3 style="color: #1976d2;">🛡️ What You'll Experience:</h3>
-                    <ul>
-                        <li>Real-time threat detection and analysis</li>
-                        <li>Process and network monitoring</li>
-                        <li>AI-powered security recommendations</li>
-                        <li>Automated security scanning</li>
-                        <li>Intelligent threat filtering</li>
-                    </ul>
-                    
-                    <div style="background: #fff3e0; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                        <h3 style="color: #f57c00; margin: 0;">⚠️ Beta Testing Guidelines:</h3>
-                        <p style="margin: 10px 0;">• This is a beta version - expect some rough edges</p>
-                        <p style="margin: 10px 0;">• Your feedback is crucial for improvement</p>
-                        <p style="margin: 10px 0;">• Report any issues to cybernova073@gmail.com</p>
-                        <p style="margin: 10px 0;">• Agent runs locally on your device</p>
-                    </div>
-                    
-                    <p style="text-align: center; margin: 30px 0;">
-                        <strong>Questions or need help?</strong><br>
-                        Email us at <a href="mailto:cybernova073@gmail.com" style="color: #1976d2;">cybernova073@gmail.com</a>
-                    </p>
-                    
-                    <div style="text-align: center; padding: 20px; background: #f5f5f5; border-radius: 8px;">
-                        <p style="margin: 0; color: #666;">Thank you for being part of the CyberNova AI journey!</p>
-                        <p style="margin: 5px 0 0 0; color: #666;">🚀 The CyberNova Team</p>
-                    </div>
-                </div>
-            </body>
-            </html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <h1 style="color: #1976d2; text-align: center;">🛡️ Welcome to CyberNova AI Beta!</h1>
+        
+        <p>Thank you for joining our exclusive beta testing program! You're now part of an elite group testing the future of cybersecurity.</p>
+        
+        <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; text-align: center;">
+            <h2 style="color: #1976d2; margin: 0 0 15px 0;">🚀 Beta Testing Access</h2>
+            <div style="background: #fff; padding: 15px; border-radius: 5px; margin: 10px 0; border: 2px solid #1976d2;">
+                <h3 style="color: #1976d2; margin: 0 0 10px 0;">🔗 Universal Installer (Recommended)</h3>
+                <p style="margin: 5px 0;"><strong>1-Click Installation for ALL Devices</strong></p>
+                <a href="https://cybernova-de84b.web.app/universal-installer" 
+                   style="display: inline-block; background: #1976d2; color: white; padding: 12px 24px; 
+                          text-decoration: none; border-radius: 5px; font-weight: bold; margin: 10px 0;">
+                    🚀 Install & Run Agent (1-Click)
+                </a>
+                <p style="margin: 5px 0; font-size: 14px; color: #666;">
+                    Auto-detects your device • Windows, Mac, Linux, Android, iOS
+                </p>
+            </div>
+            <p style="margin: 15px 0 5px 0; color: #666; font-size: 14px;">Alternative Downloads:</p>
+            <p style="margin: 5px 0;">
+                <a href="https://cybernova-de84b.web.app/agent-download?email={recipient_email}" style="color: #1976d2;">
+                    Direct Agent Download
+                </a>
+            </p>
+            <p style="margin: 5px 0;">
+                <a href="https://cybernova-de84b.web.app/installer-download?email={recipient_email}" style="color: #1976d2;">
+                    Python Installer
+                </a>
+            </p>
+        </div>
+        
+        <h3 style="color: #1976d2;">🔧 Getting Started (3 Simple Steps):</h3>
+        <ol>
+            <li><strong>Click Universal Installer:</strong> Use the 1-click installer above (works on ALL devices)</li>
+            <li><strong>Install & Run:</strong> Agent installs and starts automatically</li>
+            <li><strong>Start Scanning:</strong> Click "Start Security Scan" to see your device's security status</li>
+        </ol>
+        
+        <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; margin: 15px 0;">
+            <h4 style="color: #2e7d32; margin: 0 0 10px 0;">✨ What Happens After Installation:</h4>
+            <p style="margin: 5px 0;">• Agent starts monitoring your device immediately</p>
+            <p style="margin: 5px 0;">• Click "Start Security Scan" to see real-time results</p>
+            <p style="margin: 5px 0;">• View live dashboard with your device's security data</p>
+            <p style="margin: 5px 0;">• Agent auto-starts with your system</p>
+        </div>
+        
+        <h3 style="color: #1976d2;">🛡️ What You'll Experience:</h3>
+        <ul>
+            <li>Real-time threat detection and analysis</li>
+            <li>Process and network monitoring</li>
+            <li>AI-powered security recommendations</li>
+            <li>Automated security scanning</li>
+            <li>Intelligent threat filtering</li>
+        </ul>
+        
+        <div style="background: #fff3e0; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <h3 style="color: #f57c00; margin: 0;">⚠️ Beta Testing Guidelines:</h3>
+            <p style="margin: 10px 0;">• This is a beta version - expect some rough edges</p>
+            <p style="margin: 10px 0;">• Your feedback is crucial for improvement</p>
+            <p style="margin: 10px 0;">• Report any issues to cybernova073@gmail.com</p>
+            <p style="margin: 10px 0;">• Agent runs locally on your device</p>
+        </div>
+        
+        <p style="text-align: center; margin: 30px 0;">
+            <strong>Questions or need help?</strong><br>
+            Email us at <a href="mailto:cybernova073@gmail.com" style="color: #1976d2;">cybernova073@gmail.com</a>
+        </p>
+        
+        <div style="text-align: center; padding: 20px; background: #f5f5f5; border-radius: 8px;">
+            <p style="margin: 0; color: #666;">Thank you for being part of the CyberNova AI journey!</p>
+            <p style="margin: 5px 0 0 0; color: #666;">🚀 The CyberNova Team</p>
+        </div>
+    </div>
+</body>
+</html>
+
             """
             
             background_tasks.add_task(send_email, signup_data.email, email_subject, email_body)

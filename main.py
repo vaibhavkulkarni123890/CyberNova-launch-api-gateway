@@ -271,8 +271,8 @@ async def download_installer(email: str = None, type: str = "python"):
         # Determine installer file based on type
         installer_files = {
             "python": "install_agent.py",
-            "windows": "CyberNova_Setup.exe.bat",
-            "powershell": "install_cybernova.ps1",
+            "windows": "CyberNova_Enterprise_Setup.bat",
+            "powershell": "CyberNova_Secure_Installer.ps1",
             "unix": "install_cybernova.sh",
             "macos": "install_cybernova.sh",
             "linux": "install_cybernova.sh"
@@ -297,8 +297,8 @@ async def download_installer(email: str = None, type: str = "python"):
         # Set appropriate filename and media type
         filename_map = {
             "python": "install_cybernova.py",
-            "windows": "CyberNova_Setup.exe",
-            "powershell": "install_cybernova.ps1",
+            "windows": "CyberNova_Enterprise_Setup.exe",
+            "powershell": "CyberNova_Secure_Installer.ps1",
             "unix": "install_cybernova.sh",
             "macos": "install_cybernova.sh",
             "linux": "install_cybernova.sh"

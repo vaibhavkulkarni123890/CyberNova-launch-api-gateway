@@ -492,14 +492,14 @@
                           device_id: deviceId
                         }),
                       });
-
+                    
                       if (simulateResponse.ok) {
                         localStorage.setItem("cybernovaAgentInstalled", "true");
                         localStorage.setItem("cybernovaAgentInstallDate", new Date().toISOString());
                         localStorage.setItem("cybernovaDeviceId", deviceId);
-
+                    
                         status.textContent = "✅ Agent marked as installed! Verifying data...";
-
+                    
                         // Check for agent data
                         setTimeout(() => {
                           fetch("/api/agent/status?email=" + encodeURIComponent(userEmail))
@@ -511,20 +511,22 @@
                                 status.textContent = "⚠️ Agent installed but not sending data yet. Please ensure it's running.";
                               }
                             })
-                        .catch(() => {
-                          status.textContent = "✅ Agent marked as installed. Check dashboard for data.";
-                        });
-                    }, 2000);
-
-                    document.getElementById("scanSection").style.display = "block";
-                    document.getElementById("dashboardSection").style.display = "block";
-                    showSuccessMessage();
-                    manualSection.style.display = "none";
-                  };
-
-                  manualSection.appendChild(manualButton);
-                  document.getElementById("status").appendChild(manualSection);
-                }, 2000);
+                            .catch(() => {
+                              status.textContent = "✅ Agent marked as installed. Check dashboard for data.";
+                            });
+                        }, 2000);
+                    
+                        document.getElementById("scanSection").style.display = "block";
+                        document.getElementById("dashboardSection").style.display = "block";
+                        showSuccessMessage();
+                        manualSection.style.display = "none";
+                      }
+                    } catch (error) {
+                      // Handle errors from the fetch above
+                      console.error("Failed to simulate agent installation:", error);
+                      status.textContent = "❌ Agent installation simulation failed. Please check your connection and try again.";
+                    }
+                    , 2000);
               }
                 button.disabled = false;
               }

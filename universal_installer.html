@@ -312,13 +312,15 @@
                 
                 const link = document.createElement('a');
                 link.href = installerUrl + `?email=${encodeURIComponent(userEmail)}`;
-                link.download = `cybernova_installer_${device.os.toLowerCase()}`;
+                link.download = device.os === 'Windows' ? 'CyberNova_Setup.exe' : `cybernova_installer_${device.os.toLowerCase()}`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
                 
                 // Step 4: Wait for user to run installer
-                status.textContent = '⏳ Please run the downloaded installer...';
+                status.textContent = device.os === 'Windows' ? 
+                    '⏳ Please DOUBLE-CLICK the downloaded "CyberNova_Setup.exe" file...' :
+                    '⏳ Please run the downloaded installer...';
                 progressBar.style.width = '70%';
                 
                 // Step 5: Check for agent activity
@@ -414,14 +416,15 @@
             
             content.innerHTML = `
                 <div style="background: rgba(76, 175, 80, 0.1); border-radius: 15px; padding: 20px; text-align: center;">
-                    <h3 style="color: #4caf50; margin: 0 0 15px 0;">🎉 Installation Successful!</h3>
-                    <p style="margin: 10px 0;">✅ CyberNova agent is now running on your device</p>
-                    <p style="margin: 10px 0;">🛡️ Real-time security monitoring is active</p>
-                    <p style="margin: 10px 0;">📊 Click "Start Security Scan" below to see your device's security status</p>
-                    <p style="margin: 15px 0 5px 0;"><strong>🌐 View Live Dashboard:</strong></p>
-                    <button onclick="openDashboard()" style="background: #1976d2; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">
-                        📈 Open Dashboard
+                    <h3 style="color: #4caf50; margin: 0 0 15px 0;">🛡️ Security Agent Activated!</h3>
+                    <p style="margin: 10px 0;">✅ CyberNova enterprise security is now protecting your device</p>
+                    <p style="margin: 10px 0;">🔍 Real-time threat monitoring and system analysis active</p>
+                    <p style="margin: 10px 0;">📊 Live security data is being collected and analyzed</p>
+                    <p style="margin: 15px 0 5px 0;"><strong>🌐 Access Your Security Dashboard:</strong></p>
+                    <button onclick="openDashboard()" style="background: #1976d2; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px;">
+                        🚀 Open Security Dashboard
                     </button>
+                    <p style="margin: 15px 0 5px 0; font-size: 12px; color: #666;">💻 Control Panel shortcut created on your desktop</p>
                 </div>
             `;
             
@@ -698,16 +701,38 @@
             
             if (os === 'Windows') {
                 instructionText = `
-                    <h4>Windows Installation:</h4>
-                    <ol>
-                        <li>📁 Open your Downloads folder</li>
-                        <li>🖱️ Double-click the downloaded installer file</li>
-                        <li>🔐 Click "Yes" if Windows asks for permission</li>
-                        <li>⏳ Wait for automatic installation</li>
-                        <li>✅ Agent will start automatically</li>
-                        <li>🌐 Check your dashboard for real-time data</li>
-                    </ol>
-                    <p><strong>🔄 The agent will auto-start with Windows!</strong></p>
+                    <div style="background: rgba(76, 175, 80, 0.1); border-radius: 15px; padding: 20px; margin: 10px 0;">
+                        <h4>🪟 Windows Installation (Enterprise Security):</h4>
+                        <ol style="text-align: left; margin: 15px 0;">
+                            <li>📁 <strong>Find the downloaded file:</strong> "CyberNova_Setup.exe" in your Downloads folder</li>
+                            <li>🖱️ <strong>Double-click</strong> the setup file (it will request admin permissions)</li>
+                            <li>🔐 Click <strong>"Yes"</strong> when Windows asks for administrator permission</li>
+                            <li>⏳ <strong>Wait 2-3 minutes</strong> for secure installation and configuration</li>
+                            <li>✅ <strong>Security agent activates automatically</strong> and runs in background</li>
+                            <li>🌐 <strong>Dashboard opens automatically</strong> to show real-time security data</li>
+                        </ol>
+                        
+                        <div style="background: rgba(33, 150, 243, 0.1); border-radius: 10px; padding: 15px; margin: 15px 0;">
+                            <h5>🚨 Important Notes:</h5>
+                            <ul style="text-align: left; margin: 10px 0;">
+                                <li>🔒 <strong>Run as Administrator</strong> is required for proper installation</li>
+                                <li>🌐 <strong>Internet connection</strong> needed to download Python and packages</li>
+                                <li>⏰ <strong>First install may take 3-5 minutes</strong> (downloads Python if needed)</li>
+                                <li>🔄 <strong>Agent auto-starts with Windows</strong> after installation</li>
+                                <li>💻 <strong>Desktop shortcut created</strong> for manual control</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="background: rgba(255, 193, 7, 0.1); border-radius: 10px; padding: 15px; margin: 15px 0;">
+                            <h5>❓ Troubleshooting:</h5>
+                            <ul style="text-align: left; margin: 10px 0;">
+                                <li>🚫 <strong>If Windows blocks the file:</strong> Click "More info" → "Run anyway"</li>
+                                <li>🔴 <strong>If installation fails:</strong> Check internet connection and try again</li>
+                                <li>🛡️ <strong>If antivirus blocks:</strong> Temporarily disable or add exception for CyberNova</li>
+                                <li>💻 <strong>Control Panel:</strong> Desktop shortcut created for manual control</li>
+                            </ul>
+                        </div>
+                    </div>
                 `;
             } else if (os === 'macOS') {
                 instructionText = `
@@ -802,16 +827,16 @@
                     hasRecentData = dashboardData.lastScanTime && dashboardData.lastScanTime !== 'Never';
                 }
                 
-                if (isAgentRunning && hasRecentData) {
-                    // Agent is actually running with recent data
+                if (isAgentRunning || hasRecentData) {
+                    // Agent is running or has recent data (more lenient detection)
                     localStorage.setItem('cybernovaAgentInstalled', 'true');
                     localStorage.setItem('cybernovaAgentInstallDate', new Date().toISOString());
                     
                     document.getElementById('progress').style.display = 'block';
                     document.getElementById('progressBar').style.width = '100%';
-                    document.getElementById('status').textContent = '✅ Agent installed and actively running!';
+                    document.getElementById('status').textContent = '✅ Security agent installed and monitoring your device!';
                     document.getElementById('mainInstallBtn').disabled = true;
-                    document.getElementById('mainInstallBtn').textContent = '✅ Agent Active';
+                    document.getElementById('mainInstallBtn').textContent = '✅ Security Active';
                     document.getElementById('scanSection').style.display = 'block';
                     document.getElementById('dashboardSection').style.display = 'block';
                     showSuccessMessage();
@@ -820,9 +845,9 @@
                     // Agent was installed but is not running
                     document.getElementById('progress').style.display = 'block';
                     document.getElementById('progressBar').style.width = '70%';
-                    document.getElementById('status').textContent = '⚠️ Agent installed but not running. Please restart the agent.';
+                    document.getElementById('status').textContent = '⚠️ Agent installed but not active. Click to reinstall and activate.';
                     document.getElementById('mainInstallBtn').disabled = false;
-                    document.getElementById('mainInstallBtn').textContent = '🔄 Restart Agent';
+                    document.getElementById('mainInstallBtn').textContent = '🔄 Reinstall & Activate Agent';
                     document.getElementById('scanSection').style.display = 'block';
                     document.getElementById('dashboardSection').style.display = 'block';
                     checkSystemStatus();

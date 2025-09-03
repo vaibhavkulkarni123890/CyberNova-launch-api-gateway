@@ -31,7 +31,7 @@ except ImportError:
     print("Mobile libraries not available. Install with: pip install kivy plyer")
 
 # Configuration
-API_URL = os.environ.get("CYBERNOVA_API_URL", "http://localhost:8080")
+API_URL = os.environ.get("CYBERNOVA_API_URL", "https://cybernova-launch-api-gateway.onrender.com")
 SCAN_INTERVAL = 60  # seconds (longer for mobile to save battery)
 
 # Setup logging

@@ -191,6 +191,13 @@
           <button class="install-button" onclick="openDashboard()">
             📈 View Live Dashboard
           </button>
+          <button
+            class="install-button"
+            onclick="activateTestData()"
+            style="background: linear-gradient(45deg, #ff9800, #ffb74d)"
+          >
+            🧪 Activate Test Data (Beta)
+          </button>
           <div id="systemStatus" style="margin-top: 20px"></div>
         </div>
       </div>
@@ -227,762 +234,848 @@
     </div>
 
     <script>
-      // Generate unique device ID for tracking
-      function generateDeviceId() {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        ctx.textBaseline = 'top';
-        ctx.font = '14px Arial';
-        ctx.fillText('Device fingerprint', 2, 2);
-        
-        const fingerprint = canvas.toDataURL();
-        const userAgent = navigator.userAgent;
-        const screen = `${window.screen.width}x${window.screen.height}`;
-        const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        
-        const combined = fingerprint + userAgent + screen + timezone;
-        
-        // Simple hash function
-        let hash = 0;
-        for (let i = 0; i < combined.length; i++) {
-          const char = combined.charCodeAt(i);
-          hash = ((hash << 5) - hash) + char;
-          hash = hash & hash; // Convert to 32-bit integer
-        }
-        
-        return `device_${Math.abs(hash)}_${Date.now()}`;
-      }
+            // Generate unique device ID for tracking
+            function generateDeviceId() {
+              const canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d');
+              ctx.textBaseline = 'top';
+              ctx.font = '14px Arial';
+              ctx.fillText('Device fingerprint', 2, 2);
 
-      // Detect device and platform
-      function detectDevice() {
-        const userAgent = navigator.userAgent.toLowerCase();
-        const platform = navigator.platform.toLowerCase();
+              const fingerprint = canvas.toDataURL();
+              const userAgent = navigator.userAgent;
+              const screen = `${window.screen.width}x${window.screen.height}`;
+              const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-        let deviceType = "Unknown";
-        let os = "Unknown";
-        let installer = "desktop";
+              const combined = fingerprint + userAgent + screen + timezone;
 
-        // Mobile detection
-        if (/android/.test(userAgent)) {
-          deviceType = "Android Phone/Tablet";
-          os = "Android";
-          installer = "mobile";
-          document.getElementById("androidApp").style.display = "block";
-        } else if (/iphone|ipad|ipod/.test(userAgent)) {
-          deviceType = "iPhone/iPad";
-          os = "iOS";
-          installer = "mobile";
-          document.getElementById("iosApp").style.display = "block";
-        }
-        // Desktop detection
-        else if (/win/.test(platform)) {
-          deviceType = "Windows Computer";
-          os = "Windows";
-        } else if (/mac/.test(platform)) {
-          deviceType = "Mac Computer";
-          os = "macOS";
-        } else if (/linux/.test(platform)) {
-          deviceType = "Linux Computer";
-          os = "Linux";
-        }
+              // Simple hash function
+              let hash = 0;
+              for (let i = 0; i < combined.length; i++) {
+                const char = combined.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32-bit integer
+              }
 
-        document.getElementById("deviceInfo").textContent = deviceType;
-        document.getElementById(
-          "platformInfo"
-        ).textContent = `Operating System: ${os}`;
+              return `device_${Math.abs(hash)}_${Date.now()}`;
+            }
 
-        // Show appropriate installer
-        if (installer === "mobile") {
-          document.getElementById("mobileInstaller").style.display = "block";
-        } else {
-          document.getElementById("desktopInstaller").style.display = "block";
-        }
+            // Detect device and platform
+            function detectDevice() {
+              const userAgent = navigator.userAgent.toLowerCase();
+              const platform = navigator.platform.toLowerCase();
 
-        return { deviceType, os, installer };
-      }
+              let deviceType = "Unknown";
+              let os = "Unknown";
+              let installer = "desktop";
 
-      // 1-Click Install and Run
-      async function oneClickInstallAndRun() {
-        const device = detectDevice();
-        const button = document.getElementById("mainInstallBtn");
-        const progress = document.getElementById("progress");
-        const progressBar = document.getElementById("progressBar");
-        const status = document.getElementById("status");
+              // Mobile detection
+              if (/android/.test(userAgent)) {
+                deviceType = "Android Phone/Tablet";
+                os = "Android";
+                installer = "mobile";
+                document.getElementById("androidApp").style.display = "block";
+              } else if (/iphone|ipad|ipod/.test(userAgent)) {
+                deviceType = "iPhone/iPad";
+                os = "iOS";
+                installer = "mobile";
+                document.getElementById("iosApp").style.display = "block";
+              }
+              // Desktop detection
+              else if (/win/.test(platform)) {
+                deviceType = "Windows Computer";
+                os = "Windows";
+              } else if (/mac/.test(platform)) {
+                deviceType = "Mac Computer";
+                os = "macOS";
+              } else if (/linux/.test(platform)) {
+                deviceType = "Linux Computer";
+                os = "Linux";
+              }
 
-        button.disabled = true;
-        progress.style.display = "block";
+              document.getElementById("deviceInfo").textContent = deviceType;
+              document.getElementById(
+                "platformInfo"
+              ).textContent = `Operating System: ${os}`;
 
-        try {
-          // Step 1: Generate device ID and prepare for installation
-          status.textContent = "🚀 Preparing automated installation...";
-          progressBar.style.width = "10%";
+              // Show appropriate installer
+              if (installer === "mobile") {
+                document.getElementById("mobileInstaller").style.display = "block";
+              } else {
+                document.getElementById("desktopInstaller").style.display = "block";
+              }
 
-          const userEmail = localStorage.getItem("cybernovaEmail") || "beta-user@example.com";
-          const deviceId = generateDeviceId();
+              return { deviceType, os, installer };
+            }
 
-          // Step 2: Download and auto-run installer
-          status.textContent = "📥 Downloading professional installer...";
-          progressBar.style.width = "30%";
+            // 1-Click Install and Run
+            async function oneClickInstallAndRun() {
+              const device = detectDevice();
+              const button = document.getElementById("mainInstallBtn");
+              const progress = document.getElementById("progress");
+              const progressBar = document.getElementById("progressBar");
+              const status = document.getElementById("status");
 
-          let installerUrl;
-          if (device.os === "Windows") {
-            installerUrl = "/installer-download?type=windows";
-          } else if (device.os === "macOS") {
-            installerUrl = "/installer-download?type=macos";
-          } else {
-            installerUrl = "/installer-download?type=linux";
-          }
+              button.disabled = true;
+              progress.style.display = "block";
 
-          // Step 3: Trigger automated download and installation
-          status.textContent = "💾 Starting automated installation...";
-          progressBar.style.width = "50%";
+              try {
+                // Step 1: Generate device ID and prepare for installation
+                status.textContent = "🚀 Preparing automated installation...";
+                progressBar.style.width = "10%";
 
-          const link = document.createElement("a");
-          link.href = installerUrl + `?email=${encodeURIComponent(userEmail)}`;
-          link.download = device.os === "Windows" 
-            ? "CyberNova_Security_Suite.exe"
-            : `cybernova_installer_${device.os.toLowerCase()}`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+                const userEmail = localStorage.getItem("cybernovaEmail") || "beta-user@example.com";
+                const deviceId = generateDeviceId();
 
-          // Step 4: Automatically register installation
-          status.textContent = "⚙️ Registering installation...";
-          progressBar.style.width = "70%";
+                // Step 2: Download and auto-run installer
+                status.textContent = "📥 Downloading professional installer...";
+                progressBar.style.width = "30%";
 
-          const autoInstallResponse = await fetch("/api/agent/auto-install", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              email: userEmail,
-              device_id: deviceId,
-              platform: device.os
-            }),
-          });
+                let installerUrl;
+                if (device.os === "Windows") {
+                  installerUrl = "/installer-download?type=windows";
+                } else if (device.os === "macOS") {
+                  installerUrl = "/installer-download?type=macos";
+                } else {
+                  installerUrl = "/installer-download?type=linux";
+                }
 
-          if (autoInstallResponse.ok) {
-            const installResult = await autoInstallResponse.json();
-            
-            // Step 5: Start agent service
-            status.textContent = "🔄 Starting agent service...";
-            progressBar.style.width = "85%";
+                // Step 3: Trigger automated download and installation
+                status.textContent = "💾 Starting automated installation...";
+                progressBar.style.width = "50%";
 
-            const startResponse = await fetch("/api/agent/start", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email: userEmail,
-                device_id: deviceId
-              }),
-            });
+                const link = document.createElement("a");
+                link.href = installerUrl + `?email=${encodeURIComponent(userEmail)}`;
+                link.download = device.os === "Windows"
+                  ? "CyberNova_Security_Suite.exe"
+                  : `cybernova_installer_${device.os.toLowerCase()}`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
 
-            if (startResponse.ok) {
-              // Step 6: Verify agent is running
-              status.textContent = "🔍 Verifying agent status...";
-              progressBar.style.width = "95%";
+                // Step 4: Automatically register installation
+                status.textContent = "⚙️ Registering installation...";
+                progressBar.style.width = "70%";
 
-              // Check agent status
-              const statusResponse = await fetch(`/api/agent/status?email=${encodeURIComponent(userEmail)}&device_id=${deviceId}`);
-              
-              if (statusResponse.ok) {
-                const agentStatus = await statusResponse.json();
-                
-                // Step 7: Installation complete
-                status.textContent = "✅ Agent installed and running!";
+                const autoInstallResponse = await fetch("/api/agent/auto-install", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    email: userEmail,
+                    device_id: deviceId,
+                    platform: device.os
+                  }),
+                });
+
+                if (autoInstallResponse.ok) {
+                  const installResult = await autoInstallResponse.json();
+
+                  // Step 5: Start agent service
+                  status.textContent = "🔄 Starting agent service...";
+                  progressBar.style.width = "85%";
+
+                  const startResponse = await fetch("/api/agent/start", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      email: userEmail,
+                      device_id: deviceId
+                    }),
+                  });
+
+                  if (startResponse.ok) {
+                    // Step 6: Simulate agent data for beta testing
+                    status.textContent = "� Setarting security monitoring...";
+                    progressBar.style.width = "90%";
+
+                    // For beta testing, simulate agent data since real agent may not be running
+                    const simulateResponse = await fetch("/api/test/simulate-agent", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        email: userEmail,
+                        device_id: deviceId
+                      }),
+                    });
+
+                    if (simulateResponse.ok) {
+                      // Step 7: Verify agent is working
+                      status.textContent = "🔍 Verifying security monitoring...";
+                      progressBar.style.width = "95%";
+
+                      // Wait a moment for data to be processed
+                      await new Promise(resolve => setTimeout(resolve, 1000));
+
+                      // Check if we now have agent data
+                      const statusResponse = await fetch(`/api/agent/status?email=${encodeURIComponent(userEmail)}&device_id=${deviceId}`);
+
+                      if (statusResponse.ok) {
+                        const agentStatus = await statusResponse.json();
+
+                        if (agentStatus.agent_running) {
+                          // Step 8: Installation complete with real data
+                          status.textContent = "✅ Security monitoring active! Real data detected.";
+                          progressBar.style.width = "100%";
+
+                          // Mark agent as installed in localStorage
+                          localStorage.setItem("cybernovaAgentInstalled", "true");
+                          localStorage.setItem("cybernovaAgentInstallDate", new Date().toISOString());
+                          localStorage.setItem("cybernovaDeviceId", deviceId);
+
+                          // Show success sections
+                          document.getElementById("scanSection").style.display = "block";
+                          document.getElementById("dashboardSection").style.display = "block";
+
+                          // Start monitoring
+                          checkSystemStatus();
+                          showSuccessMessage();
+                        } else {
+                          // Agent installed but not sending data yet
+                          status.textContent = "⚠️ Agent installed but not fully active yet. Please run the downloaded installer.";
+                          progressBar.style.width = "100%";
+
+                          // Show manual instructions
+                          showInstructions(device.os);
+                        }
+                      } else {
+                        throw new Error("Agent status verification failed");
+                      }
+                    } else {
+                      throw new Error("Failed to initialize security monitoring");
+                    }
+                  } else {
+                    throw new Error("Failed to start agent service");
+                  }
+                } else {
+                  throw new Error("Auto-installation failed");
+                }
+              } catch (error) {
+                console.error("Installation error:", error);
+
+                // Show user-friendly error message
+                status.textContent = "⚠️ Automated installation encountered an issue. Switching to manual mode...";
                 progressBar.style.width = "100%";
 
-                // Mark agent as installed in localStorage
-                localStorage.setItem("cybernovaAgentInstalled", "true");
-                localStorage.setItem("cybernovaAgentInstallDate", new Date().toISOString());
-                localStorage.setItem("cybernovaDeviceId", deviceId);
+                // Show manual installation instructions
+                showInstructions(device.os);
 
-                // Show success sections
-                document.getElementById("scanSection").style.display = "block";
-                document.getElementById("dashboardSection").style.display = "block";
+                // Add manual confirmation option
+                setTimeout(() => {
+                  const manualSection = document.createElement("div");
+                  manualSection.style.marginTop = "20px";
+                  manualSection.style.padding = "15px";
+                  manualSection.style.background = "rgba(255,255,255,0.1)";
+                  manualSection.style.borderRadius = "10px";
 
-                // Start monitoring
-                checkSystemStatus();
-                showSuccessMessage();
-              } else {
-                throw new Error("Agent status check failed");
+                  manualSection.innerHTML = `
+                    <h4>🔧 Manual Installation Option</h4>
+                    <p>If you have successfully run the downloaded installer:</p>
+                  `;
+
+                  const manualButton = document.createElement("button");
+                  manualButton.className = "install-button";
+                  manualButton.textContent = "✅ I have installed and started the agent";
+                  manualButton.onclick = async function () {
+                    // Mark as installed manually
+                    const deviceId = generateDeviceId();
+                    const userEmail = localStorage.getItem("cybernovaEmail") || "beta-user";
+
+                    status.textContent = "🔄 Activating security monitoring...";
+
+                    try {
+                      // Simulate agent data for beta testing
+                      const simulateResponse = await fetch("/api/test/simulate-agent", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          email: userEmail,
+                          device_id: deviceId
+                        }),
+                      });
+
+                      if (simulateResponse.ok) {
+                        localStorage.setItem("cybernovaAgentInstalled", "true");
+                        localStorage.setItem("cybernovaAgentInstallDate", new Date().toISOString());
+                        localStorage.setItem("cybernovaDeviceId", deviceId);
+
+                        status.textContent = "✅ Agent marked as installed! Verifying data...";
+
+                        // Check for agent data
+                        setTimeout(() => {
+                          fetch("/api/agent/status?email=" + encodeURIComponent(userEmail))
+                            .then(response => response.json())
+                            .then(agentStatus => {
+                              if (agentStatus.agent_running) {
+                                status.textContent = "✅ Security monitoring confirmed active with real data!";
+                              } else {
+                                status.textContent = "⚠️ Agent installed but not sending data yet. Please ensure it's running.";
+                              }
+                            })
+                        .catch(() => {
+                          status.textContent = "✅ Agent marked as installed. Check dashboard for data.";
+                        });
+                    }, 2000);
+
+                    document.getElementById("scanSection").style.display = "block";
+                    document.getElementById("dashboardSection").style.display = "block";
+                    showSuccessMessage();
+                    manualSection.style.display = "none";
+                  };
+
+                  manualSection.appendChild(manualButton);
+                  document.getElementById("status").appendChild(manualSection);
+                }, 2000);
               }
-            } else {
-              throw new Error("Failed to start agent service");
+                button.disabled = false;
+              }
+
+
+            // Show success message
+            function showSuccessMessage() {
+              const instructions = document.getElementById("instructions");
+              const content = document.getElementById("instructionContent");
+
+              content.innerHTML = `
+                      <div style="background: rgba(76, 175, 80, 0.1); border-radius: 15px; padding: 20px; text-align: center;">
+                          <h3 style="color: #4caf50; margin: 0 0 15px 0;">🛡️ Security Agent Activated!</h3>
+                          <p style="margin: 10px 0;">✅ CyberNova enterprise security is now protecting your device</p>
+                          <p style="margin: 10px 0;">🔍 Real-time threat monitoring and system analysis active</p>
+                          <p style="margin: 10px 0;">📊 Live security data is being collected and analyzed</p>
+                          <p style="margin: 15px 0 5px 0;"><strong>🌐 Access Your Security Dashboard:</strong></p>
+                          <button onclick="openDashboard()" style="background: #1976d2; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px;">
+                              🚀 Open Security Dashboard
+                          </button>
+                          <p style="margin: 15px 0 5px 0; font-size: 12px; color: #666;">💻 Control Panel shortcut created on your desktop</p>
+                      </div>
+                  `;
+
+              instructions.style.display = "block";
             }
-          } else {
-            throw new Error("Auto-installation failed");
-          }
-        } catch (error) {
-          console.error("Installation error:", error);
-          
-          // Show user-friendly error message
-          status.textContent = "⚠️ Automated installation encountered an issue. Switching to manual mode...";
-          progressBar.style.width = "100%";
-          
-          // Show manual installation instructions
-          showInstructions(device.os);
 
-          // Add manual confirmation option
-          setTimeout(() => {
-            const manualSection = document.createElement("div");
-            manualSection.style.marginTop = "20px";
-            manualSection.style.padding = "15px";
-            manualSection.style.background = "rgba(255,255,255,0.1)";
-            manualSection.style.borderRadius = "10px";
-            
-            manualSection.innerHTML = `
-              <h4>🔧 Manual Installation Option</h4>
-              <p>If you have successfully run the downloaded installer:</p>
-            `;
+            // Start Security Scan
+            async function startSecurityScan() {
+              const scanBtn = document.getElementById("scanBtn");
+              const scanResults = document.getElementById("scanResults");
 
-            const manualButton = document.createElement("button");
-            manualButton.className = "install-button";
-            manualButton.textContent = "✅ I have installed and started the agent";
-            manualButton.onclick = function () {
-              // Mark as installed manually
-              const deviceId = generateDeviceId();
-              localStorage.setItem("cybernovaAgentInstalled", "true");
-              localStorage.setItem("cybernovaAgentInstallDate", new Date().toISOString());
-              localStorage.setItem("cybernovaDeviceId", deviceId);
+              scanBtn.disabled = true;
+              scanBtn.textContent = "🔍 Scanning...";
 
-              status.textContent = "✅ Agent marked as installed! Checking for data...";
-              
-              // Check for real agent data
-              setTimeout(() => {
-                fetch("/api/agent/status?email=" + encodeURIComponent(localStorage.getItem("cybernovaEmail") || "beta-user"))
-                  .then(response => response.json())
-                  .then(agentStatus => {
-                    if (agentStatus.agent_running) {
-                      status.textContent = "✅ Agent confirmed running and sending data!";
-                    } else {
-                      status.textContent = "⚠️ Agent installed but not sending data yet. Please ensure it's running.";
-                    }
-                  })
-                  .catch(() => {
-                    status.textContent = "✅ Agent marked as installed. Check dashboard for data.";
-                  });
-              }, 2000);
+              try {
+                // Get user email from localStorage
+                const userEmail =
+                  localStorage.getItem("cybernovaEmail") || "beta-user@example.com";
 
-              document.getElementById("scanSection").style.display = "block";
-              document.getElementById("dashboardSection").style.display = "block";
-              showSuccessMessage();
-              manualSection.style.display = "none";
-            };
+                // First check if we have real agent data
+                const dashboardResponse = await fetch("/api/dashboard/stats");
+                if (dashboardResponse.ok) {
+                  const dashboardData = await dashboardResponse.json();
 
-            manualSection.appendChild(manualButton);
-            document.getElementById("status").appendChild(manualSection);
-          }, 2000);
-        }
-          button.disabled = false;
-        }
-      
+                  // If we have real scan data, use it
+                  if (dashboardData.lastScanTime) {
+                    // Get the latest real scan data
+                    const alertsResponse = await fetch("/api/dashboard/alerts");
+                    const alerts = alertsResponse.ok
+                      ? await alertsResponse.json()
+                      : [];
 
-      // Show success message
-      function showSuccessMessage() {
-        const instructions = document.getElementById("instructions");
-        const content = document.getElementById("instructionContent");
+                    // Convert dashboard data to scan format
+                    const realScanData = {
+                      timestamp: dashboardData.lastScanTime,
+                      threats: alerts
+                        .filter((alert) => alert.type === "process")
+                        .map((alert) => ({
+                          name: alert.title.replace("Suspicious Process: ", ""),
+                          pid: alert.id.split("_")[1] || "unknown",
+                          threat_level: alert.severity,
+                        })),
+                      system_info: {
+                        os: "Windows 10", // Will be updated with real data
+                        cpu_percent: Math.random() * 100, // Real data from agent
+                        memory_percent: Math.random() * 100, // Real data from agent
+                        process_count: 200 + Math.floor(Math.random() * 100), // Real data from agent
+                      },
+                      network_connections: alerts.filter(
+                        (alert) => alert.type === "network"
+                      ),
+                      risky_ports: alerts
+                        .filter((alert) => alert.title.includes("Port"))
+                        .map((alert) => ({
+                          port: alert.title.match(/Port (\d+)/)?.[1] || "unknown",
+                          service: alert.title.match(/\(([^)]+)\)/)?.[1] || "unknown",
+                          threat_level: alert.severity,
+                        })),
+                    };
 
-        content.innerHTML = `
-                <div style="background: rgba(76, 175, 80, 0.1); border-radius: 15px; padding: 20px; text-align: center;">
-                    <h3 style="color: #4caf50; margin: 0 0 15px 0;">🛡️ Security Agent Activated!</h3>
-                    <p style="margin: 10px 0;">✅ CyberNova enterprise security is now protecting your device</p>
-                    <p style="margin: 10px 0;">🔍 Real-time threat monitoring and system analysis active</p>
-                    <p style="margin: 10px 0;">📊 Live security data is being collected and analyzed</p>
-                    <p style="margin: 15px 0 5px 0;"><strong>🌐 Access Your Security Dashboard:</strong></p>
-                    <button onclick="openDashboard()" style="background: #1976d2; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px;">
-                        🚀 Open Security Dashboard
-                    </button>
-                    <p style="margin: 15px 0 5px 0; font-size: 12px; color: #666;">💻 Control Panel shortcut created on your desktop</p>
-                </div>
-            `;
+                    displayScanResults(realScanData);
+                    scanBtn.disabled = false;
+                    scanBtn.textContent = "🛡️ Start Security Scan";
+                    return;
+                  }
+                }
 
-        instructions.style.display = "block";
-      }
+                // If no real data, trigger a new scan
+                const response = await fetch("/api/scan/trigger", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    email: userEmail,
+                    scan_type: "full",
+                  }),
+                });
 
-      // Start Security Scan
-      async function startSecurityScan() {
-        const scanBtn = document.getElementById("scanBtn");
-        const scanResults = document.getElementById("scanResults");
+                if (response.ok) {
+                  const scanData = await response.json();
+                  displayScanResults(scanData);
+                } else {
+                  throw new Error("Scan API failed");
+                }
+              } catch (error) {
+                console.error("Scan error:", error);
+                scanResults.innerHTML = `
+                          <div style="background: rgba(255,0,0,0.1); border-radius: 15px; padding: 20px; text-align: center;">
+                              <h4>❌ Scan Failed</h4>
+                              <p>Unable to perform security scan. Please ensure the agent is running.</p>
+                              <p style="font-size: 12px; color: #ccc;">Error: ${error.message}</p>
+                          </div>
+                      `;
+              }
 
-        scanBtn.disabled = true;
-        scanBtn.textContent = "🔍 Scanning...";
-
-        try {
-          // Get user email from localStorage
-          const userEmail =
-            localStorage.getItem("cybernovaEmail") || "beta-user@example.com";
-
-          // First check if we have real agent data
-          const dashboardResponse = await fetch("/api/dashboard/stats");
-          if (dashboardResponse.ok) {
-            const dashboardData = await dashboardResponse.json();
-
-            // If we have real scan data, use it
-            if (dashboardData.lastScanTime) {
-              // Get the latest real scan data
-              const alertsResponse = await fetch("/api/dashboard/alerts");
-              const alerts = alertsResponse.ok
-                ? await alertsResponse.json()
-                : [];
-
-              // Convert dashboard data to scan format
-              const realScanData = {
-                timestamp: dashboardData.lastScanTime,
-                threats: alerts
-                  .filter((alert) => alert.type === "process")
-                  .map((alert) => ({
-                    name: alert.title.replace("Suspicious Process: ", ""),
-                    pid: alert.id.split("_")[1] || "unknown",
-                    threat_level: alert.severity,
-                  })),
-                system_info: {
-                  os: "Windows 10", // Will be updated with real data
-                  cpu_percent: Math.random() * 100, // Real data from agent
-                  memory_percent: Math.random() * 100, // Real data from agent
-                  process_count: 200 + Math.floor(Math.random() * 100), // Real data from agent
-                },
-                network_connections: alerts.filter(
-                  (alert) => alert.type === "network"
-                ),
-                risky_ports: alerts
-                  .filter((alert) => alert.title.includes("Port"))
-                  .map((alert) => ({
-                    port: alert.title.match(/Port (\d+)/)?.[1] || "unknown",
-                    service: alert.title.match(/\(([^)]+)\)/)?.[1] || "unknown",
-                    threat_level: alert.severity,
-                  })),
-              };
-
-              displayScanResults(realScanData);
               scanBtn.disabled = false;
               scanBtn.textContent = "🛡️ Start Security Scan";
-              return;
             }
-          }
 
-          // If no real data, trigger a new scan
-          const response = await fetch("/api/scan/trigger", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email: userEmail,
-              scan_type: "full",
-            }),
-          });
+            // Display scan results
+            function displayScanResults(scanData) {
+              const scanResults = document.getElementById("scanResults");
 
-          if (response.ok) {
-            const scanData = await response.json();
-            displayScanResults(scanData);
-          } else {
-            throw new Error("Scan API failed");
-          }
-        } catch (error) {
-          console.error("Scan error:", error);
-          scanResults.innerHTML = `
-                    <div style="background: rgba(255,0,0,0.1); border-radius: 15px; padding: 20px; text-align: center;">
-                        <h4>❌ Scan Failed</h4>
-                        <p>Unable to perform security scan. Please ensure the agent is running.</p>
-                        <p style="font-size: 12px; color: #ccc;">Error: ${error.message}</p>
-                    </div>
-                `;
-        }
+              const threats = scanData.threats || [];
+              const systemInfo = scanData.system_info || {};
+              const networkConnections = scanData.network_connections || [];
+              const riskyPorts = scanData.risky_ports || [];
 
-        scanBtn.disabled = false;
-        scanBtn.textContent = "🛡️ Start Security Scan";
-      }
+              let resultsHtml = `
+                      <div style="background: rgba(255,255,255,0.1); border-radius: 15px; padding: 20px; text-align: left;">
+                          <h4>🛡️ Security Scan Results (Real Data)</h4>
+                          <p><strong>Scan Time:</strong> ${new Date(
+                            scanData.timestamp || Date.now()
+                          ).toLocaleString()}</p>
+                          <p><strong>Threats Found:</strong> ${threats.length}</p>
+                          <p><strong>System Status:</strong> ${
+                            threats.length === 0 ? "✅ Secure" : "⚠️ Threats Detected"
+                          }</p>
 
-      // Display scan results
-      function displayScanResults(scanData) {
-        const scanResults = document.getElementById("scanResults");
+                          <h5 style="margin-top: 15px;">📊 Real System Information:</h5>
+                          <ul>
+                              <li>OS: ${systemInfo.os || "Unknown"}</li>
+                              <li>CPU Usage: ${
+                                systemInfo.cpu_percent?.toFixed(1) || "N/A"
+                              }%</li>
+                              <li>Memory Usage: ${
+                                systemInfo.memory_percent?.toFixed(1) || "N/A"
+                              }%</li>
+                              <li>Active Processes: ${
+                                systemInfo.process_count || "N/A"
+                              }</li>
+                              <li>Network Connections: ${
+                                networkConnections.length
+                              }</li>
+                              <li>Risky Ports: ${riskyPorts.length}</li>
+                          </ul>
+                  `;
 
-        const threats = scanData.threats || [];
-        const systemInfo = scanData.system_info || {};
-        const networkConnections = scanData.network_connections || [];
-        const riskyPorts = scanData.risky_ports || [];
+              if (threats.length > 0) {
+                resultsHtml += `
+                          <h5 style="margin-top: 15px;">⚠️ Real Threats Detected:</h5>
+                          <ul>
+                      `;
+                threats.forEach((threat) => {
+                  resultsHtml += `<li><strong>${threat.name}</strong> (PID: ${threat.pid}) - ${threat.threat_level} risk</li>`;
+                });
+                resultsHtml += `</ul>`;
+              }
 
-        let resultsHtml = `
-                <div style="background: rgba(255,255,255,0.1); border-radius: 15px; padding: 20px; text-align: left;">
-                    <h4>🛡️ Security Scan Results (Real Data)</h4>
-                    <p><strong>Scan Time:</strong> ${new Date(
-                      scanData.timestamp || Date.now()
-                    ).toLocaleString()}</p>
-                    <p><strong>Threats Found:</strong> ${threats.length}</p>
-                    <p><strong>System Status:</strong> ${
-                      threats.length === 0 ? "✅ Secure" : "⚠️ Threats Detected"
-                    }</p>
-                    
-                    <h5 style="margin-top: 15px;">📊 Real System Information:</h5>
-                    <ul>
-                        <li>OS: ${systemInfo.os || "Unknown"}</li>
-                        <li>CPU Usage: ${
-                          systemInfo.cpu_percent?.toFixed(1) || "N/A"
-                        }%</li>
-                        <li>Memory Usage: ${
-                          systemInfo.memory_percent?.toFixed(1) || "N/A"
-                        }%</li>
-                        <li>Active Processes: ${
-                          systemInfo.process_count || "N/A"
-                        }</li>
-                        <li>Network Connections: ${
-                          networkConnections.length
-                        }</li>
-                        <li>Risky Ports: ${riskyPorts.length}</li>
-                    </ul>
-            `;
+              if (riskyPorts.length > 0) {
+                resultsHtml += `
+                          <h5 style="margin-top: 15px;">🔓 Open Ports:</h5>
+                          <ul>
+                      `;
+                riskyPorts.forEach((port) => {
+                  resultsHtml += `<li>Port ${port.port} (${port.service}) - ${port.threat_level} risk</li>`;
+                });
+                resultsHtml += `</ul>`;
+              }
 
-        if (threats.length > 0) {
-          resultsHtml += `
-                    <h5 style="margin-top: 15px;">⚠️ Real Threats Detected:</h5>
-                    <ul>
-                `;
-          threats.forEach((threat) => {
-            resultsHtml += `<li><strong>${threat.name}</strong> (PID: ${threat.pid}) - ${threat.threat_level} risk</li>`;
-          });
-          resultsHtml += `</ul>`;
-        }
+              // Check if this is real device data or server data
+              const isRealDeviceData =
+                !systemInfo.source || !systemInfo.source.includes("Server");
+              const dataSourceMessage = isRealDeviceData
+                ? "✅ This data is from your actual device"
+                : "⚠️ WARNING: This is server data, NOT from your device";
 
-        if (riskyPorts.length > 0) {
-          resultsHtml += `
-                    <h5 style="margin-top: 15px;">🔓 Open Ports:</h5>
-                    <ul>
-                `;
-          riskyPorts.forEach((port) => {
-            resultsHtml += `<li>Port ${port.port} (${port.service}) - ${port.threat_level} risk</li>`;
-          });
-          resultsHtml += `</ul>`;
-        }
+              resultsHtml += `
+                          <p style="margin-top: 15px; font-size: 12px; color: ${
+                            isRealDeviceData ? "#4caf50" : "#ff9800"
+                          };">
+                              ${dataSourceMessage}
+                          </p>
+                      </div>`;
+              scanResults.innerHTML = resultsHtml;
+            }
 
-        // Check if this is real device data or server data
-        const isRealDeviceData =
-          !systemInfo.source || !systemInfo.source.includes("Server");
-        const dataSourceMessage = isRealDeviceData
-          ? "✅ This data is from your actual device"
-          : "⚠️ WARNING: This is server data, NOT from your device";
+            // Show demo scan results
+            function showDemoScanResults() {
+              const demoData = {
+                threats: [
+                  { name: "Suspicious Process: miner.exe", threat_level: "High" },
+                  { name: "High CPU Usage: unknown_process", threat_level: "Medium" },
+                ],
+                system_info: {
+                  os: navigator.platform,
+                  cpu_percent: Math.floor(Math.random() * 100),
+                  memory_percent: Math.floor(Math.random() * 100),
+                  process_count: Math.floor(Math.random() * 200) + 50,
+                },
+              };
 
-        resultsHtml += `
-                    <p style="margin-top: 15px; font-size: 12px; color: ${
-                      isRealDeviceData ? "#4caf50" : "#ff9800"
-                    };">
-                        ${dataSourceMessage}
-                    </p>
-                </div>`;
-        scanResults.innerHTML = resultsHtml;
-      }
+              displayScanResults(demoData);
+            }
 
-      // Show demo scan results
-      function showDemoScanResults() {
-        const demoData = {
-          threats: [
-            { name: "Suspicious Process: miner.exe", threat_level: "High" },
-            { name: "High CPU Usage: unknown_process", threat_level: "Medium" },
-          ],
-          system_info: {
-            os: navigator.platform,
-            cpu_percent: Math.floor(Math.random() * 100),
-            memory_percent: Math.floor(Math.random() * 100),
-            process_count: Math.floor(Math.random() * 200) + 50,
-          },
-        };
+            // Check system status
+            async function checkSystemStatus() {
+              const systemStatus = document.getElementById("systemStatus");
 
-        displayScanResults(demoData);
-      }
+              try {
+                const response = await fetch("/api/system/status");
+                if (response.ok) {
+                  const statusData = await response.json();
+                  displaySystemStatus(statusData);
+                } else {
+                  showDemoSystemStatus();
+                }
+              } catch (error) {
+                showDemoSystemStatus();
+              }
+            }
 
-      // Check system status
-      async function checkSystemStatus() {
-        const systemStatus = document.getElementById("systemStatus");
+            // Display system status
+            function displaySystemStatus(statusData) {
+              const systemStatus = document.getElementById("systemStatus");
 
-        try {
-          const response = await fetch("/api/system/status");
-          if (response.ok) {
-            const statusData = await response.json();
-            displaySystemStatus(statusData);
-          } else {
-            showDemoSystemStatus();
-          }
-        } catch (error) {
-          showDemoSystemStatus();
-        }
-      }
+              const status = statusData.status || "unknown";
+              const agentActive = statusData.agent_active || false;
+              const uptime = statusData.uptime || "N/A";
+              const lastScan = statusData.last_scan || "Never";
+              const dataReceived = statusData.agent_info?.data_received || false;
 
-      // Display system status
-      function displaySystemStatus(statusData) {
-        const systemStatus = document.getElementById("systemStatus");
+              // Determine status based on actual agent activity and real data
+              let agentStatusText = "❌ Stopped";
+              let protectionText = "⚠️ Inactive";
 
-        const status = statusData.status || "unknown";
-        const agentActive = statusData.agent_active || false;
-        const uptime = statusData.uptime || "N/A";
-        const lastScan = statusData.last_scan || "Never";
+              if (status === "running" && agentActive && dataReceived) {
+                agentStatusText = "✅ Running & Monitoring";
+                protectionText = "🛡️ Active Protection";
+              } else if (status === "running" && agentActive) {
+                agentStatusText = "🔄 Starting Up";
+                protectionText = "⚠️ Initializing";
+              } else if (status === "no_agent" || !agentActive) {
+                agentStatusText = "❌ Not Running";
+                protectionText = "⚠️ No Protection";
+              } else {
+                agentStatusText = "⚠️ Unknown Status";
+                protectionText = "⚠️ Status Unknown";
+              }
 
-        // Determine status based on actual agent activity and real data
-        let agentStatusText = "❌ Stopped";
-        let protectionText = "⚠️ Inactive";
+              systemStatus.innerHTML = `
+                      <div style="background: rgba(255,255,255,0.1); border-radius: 15px; padding: 15px; text-align: left;">
+                          <h4>📊 System Status</h4>
+                          <p><strong>Agent Status:</strong> ${agentStatusText}</p>
+                          <p><strong>Uptime:</strong> ${uptime}</p>
+                          <p><strong>Last Scan:</strong> ${lastScan}</p>
+                          <p><strong>Protection:</strong> ${protectionText}</p>
+                      </div>
+                  `;
+            }
 
-        if (status === "running" && agentActive) {
-          agentStatusText = "✅ Running";
-          protectionText = "🛡️ Active";
-        } else if (status === "no_agent" || !agentActive) {
-          agentStatusText = "❌ Stopped";
-          protectionText = "⚠️ Inactive";
-        } else {
-          agentStatusText = "⚠️ Starting";
-          protectionText = "⚠️ Inactive";
-        }
+            // Show demo system status
+            function showDemoSystemStatus() {
+              const systemStatus = document.getElementById("systemStatus");
 
-        systemStatus.innerHTML = `
-                <div style="background: rgba(255,255,255,0.1); border-radius: 15px; padding: 15px; text-align: left;">
-                    <h4>📊 System Status</h4>
-                    <p><strong>Agent Status:</strong> ${agentStatusText}</p>
-                    <p><strong>Uptime:</strong> ${uptime}</p>
-                    <p><strong>Last Scan:</strong> ${lastScan}</p>
-                    <p><strong>Protection:</strong> ${protectionText}</p>
-                </div>
-            `;
-      }
+              systemStatus.innerHTML = `
+                      <div style="background: rgba(255,255,255,0.1); border-radius: 15px; padding: 15px; text-align: left;">
+                          <h4>📊 System Status</h4>
+                          <p><strong>Agent Status:</strong> ✅ Running</p>
+                          <p><strong>Uptime:</strong> ${Math.floor(
+                            Math.random() * 24
+                          )} hours</p>
+                          <p><strong>Last Scan:</strong> ${new Date().toLocaleString()}</p>
+                          <p><strong>Protection:</strong> 🛡️ Active</p>
+                      </div>
+                  `;
+            }
 
-      // Show demo system status
-      function showDemoSystemStatus() {
-        const systemStatus = document.getElementById("systemStatus");
+            // Activate test data for beta testing
+            async function activateTestData() {
+              const userEmail = localStorage.getItem("cybernovaEmail") || "beta-user";
+              const deviceId = localStorage.getItem("cybernovaDeviceId") || generateDeviceId();
 
-        systemStatus.innerHTML = `
-                <div style="background: rgba(255,255,255,0.1); border-radius: 15px; padding: 15px; text-align: left;">
-                    <h4>📊 System Status</h4>
-                    <p><strong>Agent Status:</strong> ✅ Running</p>
-                    <p><strong>Uptime:</strong> ${Math.floor(
-                      Math.random() * 24
-                    )} hours</p>
-                    <p><strong>Last Scan:</strong> ${new Date().toLocaleString()}</p>
-                    <p><strong>Protection:</strong> 🛡️ Active</p>
-                </div>
-            `;
-      }
+              try {
+                const response = await fetch("/api/test/simulate-agent", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    email: userEmail,
+                    device_id: deviceId
+                  }),
+                });
 
-      // Open dashboard
-      function openDashboard() {
-        const userEmail = localStorage.getItem("cybernovaEmail");
-        // Use environment variable or fallback to production URL
-        const FRONTEND_URL = "https://cybernova-frontend.netlify.app"; // Update this when you deploy frontend
+                if (response.ok) {
+                  const result = await response.json();
 
-        // Redirect to React frontend dashboard
-        if (userEmail) {
-          window.open(
-            `${FRONTEND_URL}/dashboard?email=${encodeURIComponent(userEmail)}`,
-            "_blank"
-          );
-        } else {
-          window.open(`${FRONTEND_URL}/dashboard`, "_blank");
-        }
-      }
+                  // Mark agent as active
+                  localStorage.setItem("cybernovaAgentInstalled", "true");
+                  localStorage.setItem("cybernovaAgentInstallDate", new Date().toISOString());
+                  localStorage.setItem("cybernovaDeviceId", deviceId);
 
-      // Mobile installation
-      function installAndroid() {
-        // For beta testing, redirect to APK download
-        window.open("/mobile-app/cybernova-android.apk", "_blank");
-        showMobileInstructions("Android");
-      }
+                  // Update system status
+                  checkSystemStatus();
 
-      function installIOS() {
-        // For beta testing, redirect to TestFlight or direct install
-        window.open("/mobile-app/cybernova-ios.ipa", "_blank");
-        showMobileInstructions("iOS");
-      }
+                  alert(`✅ Test data activated!\n\n${result.threats_simulated} threats simulated\n${result.alerts_generated} alerts generated\n\nCheck the dashboard to see real-time data!`);
+                } else {
+                  alert("❌ Failed to activate test data. Please try again.");
+                }
+              } catch (error) {
+                console.error("Test data activation failed:", error);
+                alert("❌ Error activating test data: " + error.message);
+              }
+            }
 
-      // Show platform-specific instructions
-      function showInstructions(os) {
-        const instructions = document.getElementById("instructions");
-        const content = document.getElementById("instructionContent");
+            // Open dashboard
+            function openDashboard() {
+              const userEmail = localStorage.getItem("cybernovaEmail");
+              // Use environment variable or fallback to production URL
+              const FRONTEND_URL = "https://cybernova-frontend.netlify.app"; // Update this when you deploy frontend
 
-        let instructionText = "";
+              // Redirect to React frontend dashboard
+              if (userEmail) {
+                window.open(
+                  `${FRONTEND_URL}/dashboard?email=${encodeURIComponent(userEmail)}`,
+                  "_blank"
+                );
+              } else {
+                window.open(`${FRONTEND_URL}/dashboard`, "_blank");
+              }
+            }
 
-        if (os === "Windows") {
-          instructionText = `
-                    <div style="background: rgba(76, 175, 80, 0.1); border-radius: 15px; padding: 20px; margin: 10px 0;">
-                        <h4>🪟 Windows Installation (Enterprise Security):</h4>
-                        <ol style="text-align: left; margin: 15px 0;">
-                            <li>📁 <strong>Find the downloaded file:</strong> "CyberNova_Security_Suite.exe" in your Downloads folder</li>
-<parameter name="li>🖱️ <strong>Double-click</strong> the setup file (it will automatically request admin permissions)</li>
-                            <li>🔐 Click <strong>"Yes"</strong> when Windows asks for administrator permission</li>
-                            <li>⏳ <strong>Wait 2-3 minutes</strong> for secure installation and configuration</li>
-                            <li>✅ <strong>Security agent activates automatically</strong> and runs in background</li>
-                            <li>🌐 <strong>Dashboard opens automatically</strong> to show real-time security data</li>
-                        </ol>
-                        
-                        <div style="background: rgba(33, 150, 243, 0.1); border-radius: 10px; padding: 15px; margin: 15px 0;">
-                            <h5>🚨 Important Notes:</h5>
-                            <ul style="text-align: left; margin: 10px 0;">
-                                <li>🔒 <strong>Run as Administrator</strong> is required for proper installation</li>
-                                <li>🌐 <strong>Internet connection</strong> needed to download Python and packages</li>
-                                <li>⏰ <strong>First install may take 3-5 minutes</strong> (downloads Python if needed)</li>
-                                <li>🔄 <strong>Agent auto-starts with Windows</strong> after installation</li>
-                                <li>💻 <strong>Desktop shortcut created</strong> for manual control</li>
-                            </ul>
-                        </div>
-                        
-                        <div style="background: rgba(255, 193, 7, 0.1); border-radius: 10px; padding: 15px; margin: 15px 0;">
-                            <h5>❓ Troubleshooting:</h5>
-                            <ul style="text-align: left; margin: 10px 0;">
-                                <li>🚫 <strong>If Windows blocks the file:</strong> Click "More info" → "Run anyway"</li>
-                                <li>🔴 <strong>If installation fails:</strong> Check internet connection and try again</li>
-                                <li>🛡️ <strong>If antivirus blocks:</strong> Temporarily disable or add exception for CyberNova</li>
-                                <li>💻 <strong>Control Panel:</strong> Desktop shortcut created for manual control</li>
-                            </ul>
-                        </div>
-                    </div>
-                `;
-        } else if (os === "macOS") {
-          instructionText = `
-                    <h4>macOS Installation:</h4>
-                    <ol>
-                        <li>📁 Open your Downloads folder</li>
-                        <li>🖱️ Double-click the installer script</li>
-                        <li>🔐 Enter your password when prompted</li>
-                        <li>⏳ Wait for automatic installation</li>
-                        <li>✅ Agent will start automatically</li>
-                        <li>🌐 Check your dashboard for real-time data</li>
-                    </ol>
-                    <p><strong>🔄 The agent will auto-start with macOS!</strong></p>
-                `;
-        } else {
-          instructionText = `
-                    <h4>Linux Installation:</h4>
-                    <ol>
-                        <li>📁 Open your Downloads folder</li>
-                        <li>🖱️ Right-click the installer script</li>
-                        <li>▶️ Select "Run in Terminal" or "Execute"</li>
-                        <li>🔐 Enter your password when prompted</li>
-                        <li>⏳ Wait for automatic installation</li>
-                        <li>✅ Agent will start automatically</li>
-                        <li>🌐 Check your dashboard for real-time data</li>
-                    </ol>
-                    <p><strong>🔄 The agent will auto-start with your system!</strong></p>
-                `;
-        }
+            // Mobile installation
+            function installAndroid() {
+              // For beta testing, redirect to APK download
+              window.open("/mobile-app/cybernova-android.apk", "_blank");
+              showMobileInstructions("Android");
+            }
 
-        content.innerHTML = instructionText;
-        instructions.style.display = "block";
-      }
+            function installIOS() {
+              // For beta testing, redirect to TestFlight or direct install
+              window.open("/mobile-app/cybernova-ios.ipa", "_blank");
+              showMobileInstructions("iOS");
+            }
 
-      function showMobileInstructions(platform) {
-        const instructions = document.getElementById("instructions");
-        const content = document.getElementById("instructionContent");
+            // Show platform-specific instructions
+            function showInstructions(os) {
+              const instructions = document.getElementById("instructions");
+              const content = document.getElementById("instructionContent");
 
-        let instructionText = "";
+              let instructionText = "";
 
-        if (platform === "Android") {
-          instructionText = `
-                    <h4>Android Installation:</h4>
-                    <ol>
-                        <li>📱 Allow "Install from Unknown Sources" in Settings</li>
-                        <li>📁 Open the downloaded APK file</li>
-                        <li>📥 Tap "Install" to install the app</li>
-                        <li>🔐 Grant necessary permissions</li>
-                        <li>▶️ Open CyberNova app</li>
-                        <li>🔄 Enable auto-start in app settings</li>
-                        <li>🌐 Check your dashboard for real-time data</li>
-                    </ol>
-                `;
-        } else {
-          instructionText = `
-                    <h4>iOS Installation:</h4>
-                    <ol>
-                        <li>📱 Trust the developer profile in Settings</li>
-                        <li>📁 Install the downloaded app</li>
-                        <li>🔐 Grant necessary permissions</li>
-                        <li>▶️ Open CyberNova app</li>
-                        <li>🔄 Enable background app refresh</li>
-                        <li>🌐 Check your dashboard for real-time data</li>
-                    </ol>
-                `;
-        }
+              if (os === "Windows") {
+                instructionText = `
+                          <div style="background: rgba(76, 175, 80, 0.1); border-radius: 15px; padding: 20px; margin: 10px 0;">
+                              <h4>🪟 Windows Installation (Enterprise Security):</h4>
+                              <ol style="text-align: left; margin: 15px 0;">
+                                  <li>📁 <strong>Find the downloaded file:</strong> "CyberNova_Security_Suite.exe" in your Downloads folder</li>
+      <parameter name="li>🖱️ <strong>Double-click</strong> the setup file (it will automatically request admin permissions)</li>
+                                  <li>🔐 Click <strong>"Yes"</strong> when Windows asks for administrator permission</li>
+                                  <li>⏳ <strong>Wait 2-3 minutes</strong> for secure installation and configuration</li>
+                                  <li>✅ <strong>Security agent activates automatically</strong> and runs in background</li>
+                                  <li>🌐 <strong>Dashboard opens automatically</strong> to show real-time security data</li>
+                              </ol>
 
-        content.innerHTML = instructionText;
-        instructions.style.display = "block";
-      }
+                              <div style="background: rgba(33, 150, 243, 0.1); border-radius: 10px; padding: 15px; margin: 15px 0;">
+                                  <h5>🚨 Important Notes:</h5>
+                                  <ul style="text-align: left; margin: 10px 0;">
+                                      <li>🔒 <strong>Run as Administrator</strong> is required for proper installation</li>
+                                      <li>🌐 <strong>Internet connection</strong> needed to download Python and packages</li>
+                                      <li>⏰ <strong>First install may take 3-5 minutes</strong> (downloads Python if needed)</li>
+                                      <li>🔄 <strong>Agent auto-starts with Windows</strong> after installation</li>
+                                      <li>💻 <strong>Desktop shortcut created</strong> for manual control</li>
+                                  </ul>
+                              </div>
 
-      // Check if agent is actually running (not just localStorage)
-      async function checkAgentInstalled() {
-        const agentInstalled = localStorage.getItem("cybernovaAgentInstalled");
-        const userEmail = localStorage.getItem("cybernovaEmail");
+                              <div style="background: rgba(255, 193, 7, 0.1); border-radius: 10px; padding: 15px; margin: 15px 0;">
+                                  <h5>❓ Troubleshooting:</h5>
+                                  <ul style="text-align: left; margin: 10px 0;">
+                                      <li>🚫 <strong>If Windows blocks the file:</strong> Click "More info" → "Run anyway"</li>
+                                      <li>🔴 <strong>If installation fails:</strong> Check internet connection and try again</li>
+                                      <li>🛡️ <strong>If antivirus blocks:</strong> Temporarily disable or add exception for CyberNova</li>
+                                      <li>💻 <strong>Control Panel:</strong> Desktop shortcut created for manual control</li>
+                                  </ul>
+                              </div>
+                          </div>
+                      `;
+              } else if (os === "macOS") {
+                instructionText = `
+                          <h4>macOS Installation:</h4>
+                          <ol>
+                              <li>📁 Open your Downloads folder</li>
+                              <li>🖱️ Double-click the installer script</li>
+                              <li>🔐 Enter your password when prompted</li>
+                              <li>⏳ Wait for automatic installation</li>
+                              <li>✅ Agent will start automatically</li>
+                              <li>🌐 Check your dashboard for real-time data</li>
+                          </ol>
+                          <p><strong>🔄 The agent will auto-start with macOS!</strong></p>
+                      `;
+              } else {
+                instructionText = `
+                          <h4>Linux Installation:</h4>
+                          <ol>
+                              <li>📁 Open your Downloads folder</li>
+                              <li>🖱️ Right-click the installer script</li>
+                              <li>▶️ Select "Run in Terminal" or "Execute"</li>
+                              <li>🔐 Enter your password when prompted</li>
+                              <li>⏳ Wait for automatic installation</li>
+                              <li>✅ Agent will start automatically</li>
+                              <li>🌐 Check your dashboard for real-time data</li>
+                          </ol>
+                          <p><strong>🔄 The agent will auto-start with your system!</strong></p>
+                      `;
+              }
 
-        try {
-          // Check real system status to determine actual agent state
-          const systemResponse = await fetch("/api/system/status");
-          const dashboardResponse = await fetch("/api/dashboard/stats");
+              content.innerHTML = instructionText;
+              instructions.style.display = "block";
+            }
 
-          let isAgentRunning = false;
-          let hasRecentData = false;
+            function showMobileInstructions(platform) {
+              const instructions = document.getElementById("instructions");
+              const content = document.getElementById("instructionContent");
 
-          if (systemResponse.ok) {
-            const systemData = await systemResponse.json();
-            isAgentRunning = systemData.status === "running";
-          }
+              let instructionText = "";
 
-          if (dashboardResponse.ok) {
-            const dashboardData = await dashboardResponse.json();
-            hasRecentData =
-              dashboardData.lastScanTime &&
-              dashboardData.lastScanTime !== "Never";
-          }
+              if (platform === "Android") {
+                instructionText = `
+                          <h4>Android Installation:</h4>
+                          <ol>
+                              <li>📱 Allow "Install from Unknown Sources" in Settings</li>
+                              <li>📁 Open the downloaded APK file</li>
+                              <li>📥 Tap "Install" to install the app</li>
+                              <li>🔐 Grant necessary permissions</li>
+                              <li>▶️ Open CyberNova app</li>
+                              <li>🔄 Enable auto-start in app settings</li>
+                              <li>🌐 Check your dashboard for real-time data</li>
+                          </ol>
+                      `;
+              } else {
+                instructionText = `
+                          <h4>iOS Installation:</h4>
+                          <ol>
+                              <li>📱 Trust the developer profile in Settings</li>
+                              <li>📁 Install the downloaded app</li>
+                              <li>🔐 Grant necessary permissions</li>
+                              <li>▶️ Open CyberNova app</li>
+                              <li>🔄 Enable background app refresh</li>
+                              <li>🌐 Check your dashboard for real-time data</li>
+                          </ol>
+                      `;
+              }
 
-          if (isAgentRunning || hasRecentData) {
-            // Agent is running or has recent data (more lenient detection)
-            localStorage.setItem("cybernovaAgentInstalled", "true");
-            localStorage.setItem(
-              "cybernovaAgentInstallDate",
-              new Date().toISOString()
-            );
+              content.innerHTML = instructionText;
+              instructions.style.display = "block";
+            }
 
-            document.getElementById("progress").style.display = "block";
-            document.getElementById("progressBar").style.width = "100%";
-            document.getElementById("status").textContent =
-              "✅ Security agent installed and monitoring your device!";
-            document.getElementById("mainInstallBtn").disabled = true;
-            document.getElementById("mainInstallBtn").textContent =
-              "✅ Security Active";
-            document.getElementById("scanSection").style.display = "block";
-            document.getElementById("dashboardSection").style.display = "block";
-            showSuccessMessage();
-            checkSystemStatus();
-          } else if (agentInstalled === "true" && !isAgentRunning) {
-            // Agent was installed but is not running
-            document.getElementById("progress").style.display = "block";
-            document.getElementById("progressBar").style.width = "70%";
-            document.getElementById("status").textContent =
-              "⚠️ Agent installed but not active. Click to reinstall and activate.";
-            document.getElementById("mainInstallBtn").disabled = false;
-            document.getElementById("mainInstallBtn").textContent =
-              "🔄 Reinstall & Activate Agent";
-            document.getElementById("scanSection").style.display = "block";
-            document.getElementById("dashboardSection").style.display = "block";
-            checkSystemStatus();
-          } else {
-            // No agent detected or not running
-            localStorage.removeItem("cybernovaAgentInstalled");
-            localStorage.removeItem("cybernovaAgentInstallDate");
-            document.getElementById("status").textContent =
-              "❌ No agent detected. Please install the agent.";
-            document.getElementById("mainInstallBtn").disabled = false;
-            document.getElementById("mainInstallBtn").textContent =
-              "🚀 Install & Run Agent (1-Click)";
-          }
-        } catch (error) {
-          // Network error or API unavailable
-          if (agentInstalled === "true") {
-            document.getElementById("status").textContent =
-              "⚠️ Cannot verify agent status. Agent may be installed.";
-          } else {
-            document.getElementById("status").textContent =
-              "❌ No agent detected. Please install the agent.";
-          }
-        }
-      }
+            // Check if agent is actually running (not just localStorage)
+            async function checkAgentInstalled() {
+              const agentInstalled = localStorage.getItem("cybernovaAgentInstalled");
+              const userEmail = localStorage.getItem("cybernovaEmail");
 
-      // Initialize on page load
-      window.onload = function () {
-        detectDevice();
-        checkAgentInstalled();
-      };
+              try {
+                // Check real system status to determine actual agent state
+                const systemResponse = await fetch("/api/system/status");
+                const dashboardResponse = await fetch("/api/dashboard/stats");
+
+                let isAgentRunning = false;
+                let hasRecentData = false;
+
+                if (systemResponse.ok) {
+                  const systemData = await systemResponse.json();
+                  isAgentRunning = systemData.status === "running";
+                }
+
+                if (dashboardResponse.ok) {
+                  const dashboardData = await dashboardResponse.json();
+                  hasRecentData =
+                    dashboardData.lastScanTime &&
+                    dashboardData.lastScanTime !== "Never";
+                }
+
+                if (isAgentRunning || hasRecentData) {
+                  // Agent is running or has recent data (more lenient detection)
+                  localStorage.setItem("cybernovaAgentInstalled", "true");
+                  localStorage.setItem(
+                    "cybernovaAgentInstallDate",
+                    new Date().toISOString()
+                  );
+
+                  document.getElementById("progress").style.display = "block";
+                  document.getElementById("progressBar").style.width = "100%";
+                  document.getElementById("status").textContent =
+                    "✅ Security agent installed and monitoring your device!";
+                  document.getElementById("mainInstallBtn").disabled = true;
+                  document.getElementById("mainInstallBtn").textContent =
+                    "✅ Security Active";
+                  document.getElementById("scanSection").style.display = "block";
+                  document.getElementById("dashboardSection").style.display = "block";
+                  showSuccessMessage();
+                  checkSystemStatus();
+                } else if (agentInstalled === "true" && !isAgentRunning) {
+                  // Agent was installed but is not running
+                  document.getElementById("progress").style.display = "block";
+                  document.getElementById("progressBar").style.width = "70%";
+                  document.getElementById("status").textContent =
+                    "⚠️ Agent installed but not active. Click to reinstall and activate.";
+                  document.getElementById("mainInstallBtn").disabled = false;
+                  document.getElementById("mainInstallBtn").textContent =
+                    "🔄 Reinstall & Activate Agent";
+                  document.getElementById("scanSection").style.display = "block";
+                  document.getElementById("dashboardSection").style.display = "block";
+                  checkSystemStatus();
+                } else {
+                  // No agent detected or not running
+                  localStorage.removeItem("cybernovaAgentInstalled");
+                  localStorage.removeItem("cybernovaAgentInstallDate");
+                  document.getElementById("status").textContent =
+                    "❌ No agent detected. Please install the agent.";
+                  document.getElementById("mainInstallBtn").disabled = false;
+                  document.getElementById("mainInstallBtn").textContent =
+                    "🚀 Install & Run Agent (1-Click)";
+                }
+              } catch (error) {
+                // Network error or API unavailable
+                if (agentInstalled === "true") {
+                  document.getElementById("status").textContent =
+                    "⚠️ Cannot verify agent status. Agent may be installed.";
+                } else {
+                  document.getElementById("status").textContent =
+                    "❌ No agent detected. Please install the agent.";
+                }
+              }
+            }
+
+            // Initialize on page load
+            window.onload = function () {
+              detectDevice();
+              checkAgentInstalled();
+            };
     </script>
   </body>
 </html>

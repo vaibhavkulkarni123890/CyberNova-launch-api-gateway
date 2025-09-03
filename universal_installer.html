@@ -368,7 +368,6 @@
                 });
             
                 if (!autoInstallResponse.ok) throw new Error("Auto-installation failed");
-            
                 const installResult = await autoInstallResponse.json();
             
                 // Step 5: Start agent service
@@ -386,41 +385,24 @@
             
                 if (!startResponse.ok) throw new Error("Failed to start agent service");
             
-                // Step 6: Simulate agent data for beta testing
-                status.textContent = "🔍 Starting security monitoring...";
-                progressBar.style.width = "90%";
-            
-                const simulateResponse = await fetch("/api/test/simulate-agent", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    email: userEmail,
-                    device_id: deviceId
-                  }),
-                });
-            
-                if (!simulateResponse.ok) throw new Error("Failed to initialize security monitoring");
-            
-                // Step 7: Verify agent is working
+                // Step 6: Verify agent is working with real data
                 status.textContent = "🔍 Verifying security monitoring...";
                 progressBar.style.width = "95%";
             
-                // Wait a moment for data to be processed
+                // Allow a moment for data to be processed
                 await new Promise(resolve => setTimeout(resolve, 1000));
             
-                // Check if we now have agent data
+                // Check if we now have real agent data
                 const statusResponse = await fetch(`/api/agent/status?email=${encodeURIComponent(userEmail)}&device_id=${deviceId}`);
-            
                 if (!statusResponse.ok) throw new Error("Agent status verification failed");
-            
                 const agentStatus = await statusResponse.json();
             
                 if (agentStatus.agent_running) {
-                  // Step 8: Installation complete with real data
+                  // Step 7: Installation complete with real data
                   status.textContent = "✅ Security monitoring active! Real data detected.";
                   progressBar.style.width = "100%";
             
-                  // Mark agent as installed in localStorage
+                  // Mark agent as installed in localStorage (using real data)
                   localStorage.setItem("cybernovaAgentInstalled", "true");
                   localStorage.setItem("cybernovaAgentInstallDate", new Date().toISOString());
                   localStorage.setItem("cybernovaDeviceId", deviceId);
@@ -433,8 +415,8 @@
                   checkSystemStatus();
                   showSuccessMessage();
                 } else {
-                  // Agent installed but not sending data yet
-                  status.textContent = "⚠️ Agent installed but not fully active yet. Please run the downloaded installer.";
+                  // Agent is installed but not sending data
+                  status.textContent = "⚠️ Agent installed but not fully active yet. Please run the downloaded installer and check the dashboard.";
                   progressBar.style.width = "100%";
             
                   // Show manual instructions
@@ -466,56 +448,34 @@
                   manualButton.className = "install-button";
                   manualButton.textContent = "✅ I have installed and started the agent";
                   manualButton.onclick = async function () {
-                    // Mark as installed manually
                     const deviceId = generateDeviceId();
                     const userEmail = localStorage.getItem("cybernovaEmail") || "beta-user";
             
-                    status.textContent = "🔄 Activating security monitoring...";
+                    status.textContent = "🔄 Verifying installation...";
             
                     try {
-                      // Simulate agent data for beta testing
-                      const simulateResponse = await fetch("/api/test/simulate-agent", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          email: userEmail,
-                          device_id: deviceId
-                        }),
-                      });
+                      // Actually check for real agent status
+                      const statusResponse = await fetch(`/api/agent/status?email=${encodeURIComponent(userEmail)}&device_id=${deviceId}`);
+                      if (!statusResponse.ok) throw new Error("Agent status verification failed");
+                      const agentStatus = await statusResponse.json();
             
-                      if (simulateResponse.ok) {
+                      if (agentStatus.agent_running) {
+                        // Mark as installed using real data
                         localStorage.setItem("cybernovaAgentInstalled", "true");
                         localStorage.setItem("cybernovaAgentInstallDate", new Date().toISOString());
                         localStorage.setItem("cybernovaDeviceId", deviceId);
             
-                        status.textContent = "✅ Agent marked as installed! Verifying data...";
-            
-                        // Check for agent data
-                        setTimeout(() => {
-                          fetch("/api/agent/status?email=" + encodeURIComponent(userEmail))
-                            .then(response => response.json())
-                            .then(agentStatus => {
-                              if (agentStatus.agent_running) {
-                                status.textContent = "✅ Security monitoring confirmed active with real data!";
-                              } else {
-                                status.textContent = "⚠️ Agent installed but not sending data yet. Please ensure it's running.";
-                              }
-                            })
-                            .catch(() => {
-                              status.textContent = "✅ Agent marked as installed. Check dashboard for data.";
-                            });
-                        }, 2000);
-            
+                        status.textContent = "✅ Agent installed and active! Please check the dashboard for real data.";
                         document.getElementById("scanSection").style.display = "block";
                         document.getElementById("dashboardSection").style.display = "block";
                         showSuccessMessage();
                         manualSection.style.display = "none";
                       } else {
-                        throw new Error("Failed to simulate agent installation");
+                        status.textContent = "⚠️ Agent installed but not reporting data. Please run the downloaded installer and check the dashboard.";
                       }
                     } catch (error) {
-                      console.error("Failed to simulate agent installation:", error);
-                      status.textContent = "❌ Agent installation simulation failed. Please check your connection and try again.";
+                      console.error("Agent verification failed:", error);
+                      status.textContent = "❌ Unable to verify installation. Please check your connection and try again.";
                     }
                   };
             
@@ -525,6 +485,7 @@
               }
               button.disabled = false;
             }
+            
             
 
 

@@ -75,9 +75,9 @@ fi
 # Download CyberNova agent
 echo -e "${BLUE}[INFO]${NC} Downloading CyberNova agent..."
 if command -v curl &> /dev/null; then
-    curl -o cybernova_agent.py "http://localhost:8080/installer-download?type=python"
+    curl -o cybernova_agent.py "https://cybernova-launch-api-gateway.onrender.com/installer-download?type=python"
 elif command -v wget &> /dev/null; then
-    wget -O cybernova_agent.py "http://localhost:8080/installer-download?type=python"
+    wget -O cybernova_agent.py "https://cybernova-launch-api-gateway.onrender.com/installer-download?type=python"
 else
     echo -e "${RED}[ERROR]${NC} Neither curl nor wget found. Please install one of them."
     exit 1
@@ -206,7 +206,7 @@ echo "========================================"
 echo
 echo -e "${GREEN}✅${NC} CyberNova agent is now installed and running"
 echo -e "${BLUE}🛡️${NC} Real-time security monitoring is active"
-echo -e "${BLUE}📊${NC} Check your dashboard at: http://localhost:8080/dashboard"
+echo -e "${BLUE}📊${NC} Check your dashboard at: https://cybernova-dashboard.web.app/"
 echo -e "${BLUE}🔄${NC} The agent will automatically start with your system"
 echo
 echo -e "${GREEN}🚀 Ready to scan! The agent is monitoring your device.${NC}"

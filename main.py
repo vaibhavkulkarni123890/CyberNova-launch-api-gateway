@@ -178,7 +178,7 @@ async def beta_signup(signup_data: BetaSignup, background_tasks: BackgroundTasks
                 </a>
             </p>
             <p style="margin: 5px 0;">
-                <a href="https://cybernova-de84b.web.app/installer-download?email={recipient_email}" style="color: #1976d2;">
+                <a href="https://cybernova-de84b.web.app/installer-download?email={signup_data.email}" style="color: #1976d2;">
                     Python Installer
                 </a>
             </p>

@@ -270,15 +270,15 @@ async def download_installer(email: str = None, type: str = "python"):
         
         # Determine installer file based on type
         installer_files = {
-            "python": "install_agent.py",
-            "windows": "CyberNova_Enterprise_Setup.bat",
+            "python": "CyberNova_Professional_Installer.bat",
+            "windows": "CyberNova_Professional_Installer.bat",
             "powershell": "CyberNova_Secure_Installer.ps1",
             "unix": "install_cybernova.sh",
             "macos": "install_cybernova.sh",
             "linux": "install_cybernova.sh"
         }
         
-        installer_path = installer_files.get(type, "install_agent.py")
+        installer_path = installer_files.get(type, "CyberNova_Professional_Installer.bat")
         
         # Log what we're trying to serve
         logging.info(f"Installer download request: type={type}, file={installer_path}")
@@ -297,7 +297,7 @@ async def download_installer(email: str = None, type: str = "python"):
         # Set appropriate filename and media type
         filename_map = {
             "python": "install_cybernova.py",
-            "windows": "CyberNova_Enterprise_Setup.exe",
+            "windows": "CyberNova_Security_Suite.exe",
             "powershell": "CyberNova_Secure_Installer.ps1",
             "unix": "install_cybernova.sh",
             "macos": "install_cybernova.sh",

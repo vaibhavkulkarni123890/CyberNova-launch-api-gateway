@@ -1,7 +1,7 @@
 # CyberNova AI - Database-Free Beta Testing Platform
 from fastapi import FastAPI, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime
+from datetime import datetime, timedelta
 import os, json, smtplib, ssl, time, logging
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -556,7 +556,6 @@ async def get_system_status():
     """Get current system and agent status"""
     try:
         import platform
-        from datetime import datetime, timedelta
         
         # Check if we have real agent data
         global latest_scan_data
@@ -596,6 +595,7 @@ async def get_system_status():
     except Exception as e:
         logging.error(f"System status check failed: {e}")
         # Return a basic status instead of failing
+        global latest_scan_data
         agent_active = latest_scan_data is not None and latest_scan_data.get("threats") is not None
         
         return {
@@ -721,7 +721,6 @@ async def check_agent_status(email: str = None, device_id: str = None):
         
         # Check if data is recent (within last 5 minutes)
         if last_data_time:
-            from datetime import datetime, timedelta
             try:
                 last_time = datetime.fromisoformat(last_data_time.replace('Z', '+00:00'))
                 current_time = datetime.now()

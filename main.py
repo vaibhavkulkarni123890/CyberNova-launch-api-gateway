@@ -595,7 +595,6 @@ async def get_system_status():
     except Exception as e:
         logging.error(f"System status check failed: {e}")
         # Return a basic status instead of failing
-        global latest_scan_data
         agent_active = latest_scan_data is not None and latest_scan_data.get("threats") is not None
         
         return {

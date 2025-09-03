@@ -315,22 +315,22 @@
               const progress = document.getElementById("progress");
               const progressBar = document.getElementById("progressBar");
               const status = document.getElementById("status");
-
+            
               button.disabled = true;
               progress.style.display = "block";
-
+            
               try {
                 // Step 1: Generate device ID and prepare for installation
                 status.textContent = "🚀 Preparing automated installation...";
                 progressBar.style.width = "10%";
-
+            
                 const userEmail = localStorage.getItem("cybernovaEmail") || "beta-user@example.com";
                 const deviceId = generateDeviceId();
-
+            
                 // Step 2: Download and auto-run installer
                 status.textContent = "📥 Downloading professional installer...";
                 progressBar.style.width = "30%";
-
+            
                 let installerUrl;
                 if (device.os === "Windows") {
                   installerUrl = "/installer-download?type=windows";
@@ -339,11 +339,11 @@
                 } else {
                   installerUrl = "/installer-download?type=linux";
                 }
-
+            
                 // Step 3: Trigger automated download and installation
                 status.textContent = "💾 Starting automated installation...";
                 progressBar.style.width = "50%";
-
+            
                 const link = document.createElement("a");
                 link.href = installerUrl + `?email=${encodeURIComponent(userEmail)}`;
                 link.download = device.os === "Windows"
@@ -352,11 +352,11 @@
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
-
+            
                 // Step 4: Automatically register installation
                 status.textContent = "⚙️ Registering installation...";
                 progressBar.style.width = "70%";
-
+            
                 const autoInstallResponse = await fetch("/api/agent/auto-install", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
@@ -366,99 +366,90 @@
                     platform: device.os
                   }),
                 });
-
-                if (autoInstallResponse.ok) {
-                  const installResult = await autoInstallResponse.json();
-
-                  // Step 5: Start agent service
-                  status.textContent = "🔄 Starting agent service...";
-                  progressBar.style.width = "85%";
-
-                  const startResponse = await fetch("/api/agent/start", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      email: userEmail,
-                      device_id: deviceId
-                    }),
-                  });
-
-                  if (startResponse.ok) {
-                    // Step 6: Simulate agent data for beta testing
-                    status.textContent = "� Setarting security monitoring...";
-                    progressBar.style.width = "90%";
-
-                    // For beta testing, simulate agent data since real agent may not be running
-                    const simulateResponse = await fetch("/api/test/simulate-agent", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        email: userEmail,
-                        device_id: deviceId
-                      }),
-                    });
-
-                    if (simulateResponse.ok) {
-                      // Step 7: Verify agent is working
-                      status.textContent = "🔍 Verifying security monitoring...";
-                      progressBar.style.width = "95%";
-
-                      // Wait a moment for data to be processed
-                      await new Promise(resolve => setTimeout(resolve, 1000));
-
-                      // Check if we now have agent data
-                      const statusResponse = await fetch(`/api/agent/status?email=${encodeURIComponent(userEmail)}&device_id=${deviceId}`);
-
-                      if (statusResponse.ok) {
-                        const agentStatus = await statusResponse.json();
-
-                        if (agentStatus.agent_running) {
-                          // Step 8: Installation complete with real data
-                          status.textContent = "✅ Security monitoring active! Real data detected.";
-                          progressBar.style.width = "100%";
-
-                          // Mark agent as installed in localStorage
-                          localStorage.setItem("cybernovaAgentInstalled", "true");
-                          localStorage.setItem("cybernovaAgentInstallDate", new Date().toISOString());
-                          localStorage.setItem("cybernovaDeviceId", deviceId);
-
-                          // Show success sections
-                          document.getElementById("scanSection").style.display = "block";
-                          document.getElementById("dashboardSection").style.display = "block";
-
-                          // Start monitoring
-                          checkSystemStatus();
-                          showSuccessMessage();
-                        } else {
-                          // Agent installed but not sending data yet
-                          status.textContent = "⚠️ Agent installed but not fully active yet. Please run the downloaded installer.";
-                          progressBar.style.width = "100%";
-
-                          // Show manual instructions
-                          showInstructions(device.os);
-                        }
-                      } else {
-                        throw new Error("Agent status verification failed");
-                      }
-                    } else {
-                      throw new Error("Failed to initialize security monitoring");
-                    }
-                  } else {
-                    throw new Error("Failed to start agent service");
-                  }
+            
+                if (!autoInstallResponse.ok) throw new Error("Auto-installation failed");
+            
+                const installResult = await autoInstallResponse.json();
+            
+                // Step 5: Start agent service
+                status.textContent = "🔄 Starting agent service...";
+                progressBar.style.width = "85%";
+            
+                const startResponse = await fetch("/api/agent/start", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    email: userEmail,
+                    device_id: deviceId
+                  }),
+                });
+            
+                if (!startResponse.ok) throw new Error("Failed to start agent service");
+            
+                // Step 6: Simulate agent data for beta testing
+                status.textContent = "🔍 Starting security monitoring...";
+                progressBar.style.width = "90%";
+            
+                const simulateResponse = await fetch("/api/test/simulate-agent", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    email: userEmail,
+                    device_id: deviceId
+                  }),
+                });
+            
+                if (!simulateResponse.ok) throw new Error("Failed to initialize security monitoring");
+            
+                // Step 7: Verify agent is working
+                status.textContent = "🔍 Verifying security monitoring...";
+                progressBar.style.width = "95%";
+            
+                // Wait a moment for data to be processed
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            
+                // Check if we now have agent data
+                const statusResponse = await fetch(`/api/agent/status?email=${encodeURIComponent(userEmail)}&device_id=${deviceId}`);
+            
+                if (!statusResponse.ok) throw new Error("Agent status verification failed");
+            
+                const agentStatus = await statusResponse.json();
+            
+                if (agentStatus.agent_running) {
+                  // Step 8: Installation complete with real data
+                  status.textContent = "✅ Security monitoring active! Real data detected.";
+                  progressBar.style.width = "100%";
+            
+                  // Mark agent as installed in localStorage
+                  localStorage.setItem("cybernovaAgentInstalled", "true");
+                  localStorage.setItem("cybernovaAgentInstallDate", new Date().toISOString());
+                  localStorage.setItem("cybernovaDeviceId", deviceId);
+            
+                  // Show all sections
+                  document.getElementById("scanSection").style.display = "block";
+                  document.getElementById("dashboardSection").style.display = "block";
+            
+                  // Start monitoring
+                  checkSystemStatus();
+                  showSuccessMessage();
                 } else {
-                  throw new Error("Auto-installation failed");
+                  // Agent installed but not sending data yet
+                  status.textContent = "⚠️ Agent installed but not fully active yet. Please run the downloaded installer.";
+                  progressBar.style.width = "100%";
+            
+                  // Show manual instructions
+                  showInstructions(device.os);
                 }
               } catch (error) {
                 console.error("Installation error:", error);
-
+            
                 // Show user-friendly error message
                 status.textContent = "⚠️ Automated installation encountered an issue. Switching to manual mode...";
                 progressBar.style.width = "100%";
-
+            
                 // Show manual installation instructions
                 showInstructions(device.os);
-
+            
                 // Add manual confirmation option
                 setTimeout(() => {
                   const manualSection = document.createElement("div");
@@ -466,12 +457,11 @@
                   manualSection.style.padding = "15px";
                   manualSection.style.background = "rgba(255,255,255,0.1)";
                   manualSection.style.borderRadius = "10px";
-
+            
                   manualSection.innerHTML = `
-                    <h4>🔧 Manual Installation Option</h4>
-                    <p>If you have successfully run the downloaded installer:</p>
-                  `;
-
+                    <h4>Manual Installation Option</h4>
+                    <p>If you have successfully run the downloaded installer:</p>`;
+            
                   const manualButton = document.createElement("button");
                   manualButton.className = "install-button";
                   manualButton.textContent = "✅ I have installed and started the agent";
@@ -479,9 +469,9 @@
                     // Mark as installed manually
                     const deviceId = generateDeviceId();
                     const userEmail = localStorage.getItem("cybernovaEmail") || "beta-user";
-
+            
                     status.textContent = "🔄 Activating security monitoring...";
-
+            
                     try {
                       // Simulate agent data for beta testing
                       const simulateResponse = await fetch("/api/test/simulate-agent", {
@@ -492,14 +482,14 @@
                           device_id: deviceId
                         }),
                       });
-                    
+            
                       if (simulateResponse.ok) {
                         localStorage.setItem("cybernovaAgentInstalled", "true");
                         localStorage.setItem("cybernovaAgentInstallDate", new Date().toISOString());
                         localStorage.setItem("cybernovaDeviceId", deviceId);
-                    
+            
                         status.textContent = "✅ Agent marked as installed! Verifying data...";
-                    
+            
                         // Check for agent data
                         setTimeout(() => {
                           fetch("/api/agent/status?email=" + encodeURIComponent(userEmail))
@@ -515,21 +505,27 @@
                               status.textContent = "✅ Agent marked as installed. Check dashboard for data.";
                             });
                         }, 2000);
-                    
+            
                         document.getElementById("scanSection").style.display = "block";
                         document.getElementById("dashboardSection").style.display = "block";
                         showSuccessMessage();
                         manualSection.style.display = "none";
+                      } else {
+                        throw new Error("Failed to simulate agent installation");
                       }
                     } catch (error) {
-                      // Handle errors from the fetch above
                       console.error("Failed to simulate agent installation:", error);
                       status.textContent = "❌ Agent installation simulation failed. Please check your connection and try again.";
                     }
-                    , 2000);
+                  };
+            
+                  manualSection.appendChild(manualButton);
+                  document.getElementById("status").appendChild(manualSection);
+                }, 2000);
               }
-                button.disabled = false;
-              }
+              button.disabled = false;
+            }
+            
 
 
             // Show success message

@@ -116,7 +116,7 @@ echo ========================================
 echo.
 echo ✅ CyberNova agent is now installed and running
 echo 🛡️ Real-time security monitoring is active  
-echo 📊 Check your dashboard at: https://cybernova-frontend.netlify.app/dashboard
+echo 📊 Check your dashboard at: https://cybernova-dashboard.web.app/
 echo 🔄 The agent will automatically start with Windows
 echo.
 echo 🚀 Ready to scan! The agent is monitoring your device.

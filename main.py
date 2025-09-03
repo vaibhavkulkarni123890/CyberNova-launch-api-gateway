@@ -271,7 +271,7 @@ async def download_installer(email: str = None, type: str = "python"):
         # Determine installer file based on type
         installer_files = {
             "python": "install_agent.py",
-            "windows": "CyberNova_Installer.bat",
+            "windows": "CyberNova_Setup.exe.bat",
             "powershell": "install_cybernova.ps1",
             "unix": "install_cybernova.sh",
             "macos": "install_cybernova.sh",
@@ -280,17 +280,24 @@ async def download_installer(email: str = None, type: str = "python"):
         
         installer_path = installer_files.get(type, "install_agent.py")
         
+        # Log what we're trying to serve
+        logging.info(f"Installer download request: type={type}, file={installer_path}")
+        
         if not os.path.exists(installer_path):
+            logging.error(f"Installer file not found: {installer_path}")
             raise HTTPException(status_code=404, detail=f"Installer file not found: {installer_path}")
         
         # Read the installer file
         with open(installer_path, 'r', encoding='utf-8') as f:
             installer_content = f.read()
         
+        # Log first few characters to verify content
+        logging.info(f"Serving installer content (first 50 chars): {installer_content[:50]}")
+        
         # Set appropriate filename and media type
         filename_map = {
             "python": "install_cybernova.py",
-            "windows": "CyberNova_Installer.bat",
+            "windows": "CyberNova_Setup.exe",
             "powershell": "install_cybernova.ps1",
             "unix": "install_cybernova.sh",
             "macos": "install_cybernova.sh",
@@ -309,6 +316,7 @@ async def download_installer(email: str = None, type: str = "python"):
             headers={"Content-Disposition": f"attachment; filename={filename}"}
         )
     except Exception as e:
+        logging.error(f"Installer download failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to download installer: {str(e)}")
 
 @app.get("/universal-installer")
@@ -645,6 +653,44 @@ async def install_agent(install_request: dict):
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
+# Debug endpoint to check available installer files
+@app.get("/debug/installers")
+async def debug_installers():
+    """Debug endpoint to check what installer files are available"""
+    installer_files = {
+        "python": "install_agent.py",
+        "windows": "CyberNova_Installer.bat",
+        "powershell": "install_cybernova.ps1",
+        "unix": "install_cybernova.sh",
+        "macos": "install_cybernova.sh",
+        "linux": "install_cybernova.sh"
+    }
+    
+    file_status = {}
+    for file_type, file_path in installer_files.items():
+        exists = os.path.exists(file_path)
+        size = os.path.getsize(file_path) if exists else 0
+        file_status[file_type] = {
+            "file_path": file_path,
+            "exists": exists,
+            "size_bytes": size
+        }
+        
+        if exists:
+            # Read first 100 characters to verify content
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    content_preview = f.read(100)
+                file_status[file_type]["content_preview"] = content_preview
+            except Exception as e:
+                file_status[file_type]["content_preview"] = f"Error reading: {str(e)}"
+    
+    return {
+        "installer_files": file_status,
+        "current_directory": os.getcwd(),
+        "timestamp": datetime.now().isoformat()
+    }
 
 # Root endpoint
 @app.get("/")

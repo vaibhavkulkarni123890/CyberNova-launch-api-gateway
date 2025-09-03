@@ -833,7 +833,12 @@ async def startup_event():
     except Exception as e:
         print(f"❌ Startup failed: {e}")
         raise e
-
+    try:
+        if not os.path.exists(EMAILS_FILE):
+            with open(EMAILS_FILE, "w") as f:
+                json.dump([], f)
+    except Exception as e:
+        logging.error(f"Failed to initialize storage file: {e}")
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8080)

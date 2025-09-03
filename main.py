@@ -432,20 +432,18 @@ async def receive_agent_data(scan_data: dict):
 
 @app.get("/mobile-app/{filename}")
 async def download_mobile_app(filename: str):
-    """Download mobile apps (APK/IPA)"""
     try:
-        # For beta testing, return placeholder or redirect to actual app
-        if filename.endswith('.apk'):
-            # Android APK download
-            return {"message": "Android APK download - Coming soon in beta", "platform": "android"}
-        elif filename.endswith('.ipa'):
-            # iOS IPA download
-            return {"message": "iOS app download - Coming soon in beta", "platform": "ios"}
+        if filename.endswith('.apk') or filename.endswith('.ipa'):
+            mobile_agent_path = "mobile_agent.py"
+            if not os.path.isfile(mobile_agent_path):
+                raise HTTPException(status_code=404, detail="Mobile agent script not found")
+            return StreamingResponse(open(mobile_agent_path, 'rb'),
+                                     media_type="application/octet-stream",
+                                     headers={"Content-Disposition": f"attachment; filename=mobile_agent.py"})
         else:
             raise HTTPException(status_code=404, detail="Mobile app not found")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to download mobile app: {str(e)}")
-
 @app.post("/api/scan/trigger")
 async def trigger_security_scan(scan_request: dict):
     """Trigger a security scan for the user - returns real data if available"""

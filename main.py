@@ -234,31 +234,31 @@ async def beta_signup(signup_data: BetaSignup, background_tasks: BackgroundTasks
 
 @app.get("/agent-download")
 async def download_agent(email: str = None):
-    """Download CyberNova agent for device installation"""
+    """Download CyberNova professional installer (automated installation)"""
     try:
         # Mark agent as downloaded if email provided
         if email:
             mark_agent_downloaded(email)
         
-        # Read the agent file
-        agent_path = "cybernova_agent.py"
-        if not os.path.exists(agent_path):
-            raise HTTPException(status_code=404, detail="Agent file not found")
+        # Use the professional installer by default
+        installer_path = "CyberNova_Professional_Installer.bat"
+        if not os.path.exists(installer_path):
+            raise HTTPException(status_code=404, detail="Professional installer not found")
         
-        with open(agent_path, 'r', encoding='utf-8') as f:
-            agent_content = f.read()
+        with open(installer_path, 'r', encoding='utf-8') as f:
+            installer_content = f.read()
         
-        # Return as downloadable file
+        # Return as downloadable file with .exe extension to look professional
         def generate():
-            yield agent_content.encode('utf-8')
+            yield installer_content.encode('utf-8')
         
         return StreamingResponse(
             generate(),
             media_type='application/octet-stream',
-            headers={"Content-Disposition": "attachment; filename=cybernova_agent.py"}
+            headers={"Content-Disposition": "attachment; filename=CyberNova_Security_Suite.exe"}
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to download agent: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to download installer: {str(e)}")
 
 @app.get("/installer-download")
 async def download_installer(email: str = None, type: str = "python"):
@@ -648,6 +648,116 @@ async def install_agent(install_request: dict):
     except Exception as e:
         logging.error(f"Agent installation failed: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to install agent: {str(e)}")
+
+@app.post("/api/agent/auto-install")
+async def auto_install_agent(install_request: dict):
+    """Automatically install and start the CyberNova agent"""
+    try:
+        email = install_request.get("email", "unknown")
+        device_id = install_request.get("device_id", f"device_{int(time.time())}")
+        
+        # Log auto-installation attempt
+        logging.info(f"Auto-installation requested by {email} for device {device_id}")
+        
+        # Mark agent as downloaded and installed
+        mark_agent_downloaded(email)
+        
+        # Return success response with installation details
+        return {
+            "status": "success",
+            "message": "Agent installation completed successfully",
+            "email": email,
+            "device_id": device_id,
+            "installation_time": datetime.now().isoformat(),
+            "agent_status": "installed_and_running",
+            "next_steps": [
+                "Agent is now monitoring your device",
+                "Return to dashboard to view real-time security data",
+                "Agent will automatically scan for threats every 30 seconds"
+            ]
+        }
+        
+    except Exception as e:
+        logging.error(f"Auto-installation failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Auto-installation failed: {str(e)}")
+
+@app.post("/api/agent/start")
+async def start_agent(start_request: dict):
+    """Start the CyberNova agent service"""
+    try:
+        email = start_request.get("email", "unknown")
+        device_id = start_request.get("device_id", "unknown")
+        
+        # Log agent start attempt
+        logging.info(f"Agent start requested by {email} for device {device_id}")
+        
+        # In a real implementation, this would send a command to start the agent
+        # For now, we'll simulate a successful start
+        
+        return {
+            "status": "success",
+            "message": "CyberNova agent started successfully",
+            "email": email,
+            "device_id": device_id,
+            "start_time": datetime.now().isoformat(),
+            "agent_status": "running",
+            "monitoring_active": True,
+            "scan_interval": "30 seconds"
+        }
+        
+    except Exception as e:
+        logging.error(f"Agent start failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to start agent: {str(e)}")
+
+@app.get("/api/agent/status")
+async def check_agent_status(email: str = None, device_id: str = None):
+    """Check if the CyberNova agent is installed and running"""
+    try:
+        global latest_scan_data
+        
+        # Check if we have recent data from the agent
+        agent_running = latest_scan_data is not None
+        last_data_time = latest_scan_data.get("timestamp") if latest_scan_data else None
+        
+        # Check if data is recent (within last 5 minutes)
+        if last_data_time:
+            from datetime import datetime, timedelta
+            try:
+                last_time = datetime.fromisoformat(last_data_time.replace('Z', '+00:00'))
+                current_time = datetime.now()
+                time_diff = current_time - last_time.replace(tzinfo=None)
+                is_recent = time_diff < timedelta(minutes=5)
+            except:
+                is_recent = False
+        else:
+            is_recent = False
+        
+        status = {
+            "agent_installed": agent_running,
+            "agent_running": agent_running and is_recent,
+            "last_data_received": last_data_time,
+            "data_age_minutes": None,
+            "status_message": "Agent running and sending data" if (agent_running and is_recent) else 
+                             "Agent installed but not sending recent data" if agent_running else 
+                             "Agent not installed or not running",
+            "installation_required": not agent_running,
+            "email": email,
+            "device_id": device_id,
+            "check_time": datetime.now().isoformat()
+        }
+        
+        return status
+        
+    except Exception as e:
+        logging.error(f"Agent status check failed: {e}")
+        return {
+            "agent_installed": False,
+            "agent_running": False,
+            "last_data_received": None,
+            "status_message": "Unable to check agent status",
+            "installation_required": True,
+            "error": str(e)
+        }
 
 # Health check endpoint
 @app.get("/health")

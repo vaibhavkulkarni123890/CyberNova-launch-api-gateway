@@ -149,6 +149,33 @@
     </style>
   </head>
   <body>
+    <script>
+      function detectPlatform() {
+          const ua = navigator.userAgent || navigator.vendor || window.opera;
+          if (/android/i.test(ua)) return 'Android';
+          if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return 'iOS';
+          if (/Win/.test(navigator.platform)) return 'Windows';
+          if (/Mac/.test(navigator.platform)) return 'macOS';
+          if (/Linux/.test(navigator.platform)) return 'Linux';
+          return 'Unknown';
+      }
+      
+      const platform = detectPlatform();
+      
+      if (platform === 'Android' || platform === 'iOS' || platform === 'Unknown') {
+          document.body.innerHTML = `
+              <div style="font-family: Arial, sans-serif; padding: 30px; max-width: 600px; margin: 0 auto;">
+                  <h1 style="color: #1976d2; text-align:center;">Mobile Beta Testing</h1>
+                  <p style="text-align:center; font-size: 16px; color: #333;">
+                      Due to current mobile platform restrictions, beta testing <strong>is only available on desktop devices</strong>.<br>
+                      The main CyberNova application supports all device types via your web browser and requires no installation.<br>
+                      Please use a PC or Mac for beta testing the agent.
+                  </p>
+              </div>
+          `;
+      }
+      </script>
+      
     <div class="installer-container">
       <div class="logo">🛡️</div>
       <h1>CyberNova AI</h1>
@@ -202,30 +229,7 @@
         </div>
       </div>
 
-      <div id="mobileInstaller" style="display: none">
-        <div class="mobile-app">
-          <h3>📱 Mobile Installation</h3>
-          <p>Install CyberNova Mobile Security App</p>
-
-          <div id="androidApp" style="display: none">
-            <h4>🤖 Android</h4>
-            <button class="install-button" onclick="installAndroid()">
-              📥 Install Android App
-            </button>
-            <p>Or scan QR code:</p>
-            <div class="qr-code">Android QR Code</div>
-          </div>
-
-          <div id="iosApp" style="display: none">
-            <h4>🍎 iOS</h4>
-            <button class="install-button" onclick="installIOS()">
-              📥 Install iOS App
-            </button>
-            <p>Or scan QR code:</p>
-            <div class="qr-code">iOS QR Code</div>
-          </div>
-        </div>
-      </div>
+      
 
       <div class="instructions" id="instructions" style="display: none">
         <h3>📋 Installation Instructions</h3>

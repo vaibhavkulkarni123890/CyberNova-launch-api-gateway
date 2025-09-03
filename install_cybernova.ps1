@@ -90,7 +90,7 @@ try {
 # Download CyberNova agent
 Write-Host "[INFO] Downloading CyberNova agent..." -ForegroundColor Blue
 try {
-    $agentUrl = "http://localhost:8080/installer-download?type=python"
+    $agentUrl = "https://cybernova-launch-api-gateway.onrender.com/installer-download?type=python"
     Invoke-WebRequest -Uri $agentUrl -OutFile "cybernova_agent.py"
     
     if (Test-Path "cybernova_agent.py") {
@@ -203,7 +203,7 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "✅ CyberNova agent is now installed and running" -ForegroundColor Green
 Write-Host "🛡️ Real-time security monitoring is active" -ForegroundColor Blue
-Write-Host "📊 Check your dashboard at: http://localhost:8080/dashboard" -ForegroundColor Blue
+Write-Host "📊 Check your dashboard at:https://cybernova-dashboard.web.app/" -ForegroundColor Blue
 Write-Host "🔄 The agent will automatically start with Windows" -ForegroundColor Blue
 Write-Host ""
 Write-Host "🚀 Ready to scan! The agent is monitoring your device." -ForegroundColor Green

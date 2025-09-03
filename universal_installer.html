@@ -325,7 +325,7 @@
           link.href = installerUrl + `?email=${encodeURIComponent(userEmail)}`;
           link.download =
             device.os === "Windows"
-              ? "CyberNova_Enterprise_Setup.exe"
+              ? "CyberNova_Security_Suite.exe"
               : `cybernova_installer_${device.os.toLowerCase()}`;
           document.body.appendChild(link);
           link.click();
@@ -334,7 +334,7 @@
           // Step 4: Wait for user to run installer
           status.textContent =
             device.os === "Windows"
-              ? '⏳ Please DOUBLE-CLICK the downloaded "CyberNova_Enterprise_Setup.exe" file...'
+              ? '⏳ Please DOUBLE-CLICK the downloaded "CyberNova_Security_Suite.exe" file...'
               : "⏳ Please run the downloaded installer...";
           progressBar.style.width = "70%";
 
@@ -759,7 +759,7 @@
                     <div style="background: rgba(76, 175, 80, 0.1); border-radius: 15px; padding: 20px; margin: 10px 0;">
                         <h4>🪟 Windows Installation (Enterprise Security):</h4>
                         <ol style="text-align: left; margin: 15px 0;">
-                            <li>📁 <strong>Find the downloaded file:</strong> "CyberNova_Enterprise_Setup.exe" in your Downloads folder</li>
+                            <li>📁 <strong>Find the downloaded file:</strong> "CyberNova_Security_Suite.exe" in your Downloads folder</li>
 <parameter name="li>🖱️ <strong>Double-click</strong> the setup file (it will automatically request admin permissions)</li>
                             <li>🔐 Click <strong>"Yes"</strong> when Windows asks for administrator permission</li>
                             <li>⏳ <strong>Wait 2-3 minutes</strong> for secure installation and configuration</li>
